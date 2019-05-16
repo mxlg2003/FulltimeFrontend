@@ -1,0 +1,79 @@
+@import './antd.css';
+
+.ant-menu {
+  padding: 16px 0px;
+  width: 100%;
+}
+
+.ant-menu a {
+  display: block;
+  width: 100%;
+  line-height: 40px;
+  left: 0;
+  margin-left: 0;
+  border-right: 0;
+  margin-bottom: 8px;
+  padding-left: 24px;
+}
+
+.ant-menu a i {
+  min-width: 14px;
+  margin-right: 10px;
+  font-size: 14px;
+  transition: font-size .15s cubic-bezier(.215, .61, .355, 1), margin .3s cubic-bezier(.645, .045, .355, 1);
+}
+
+.ant-menu a.active {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.logo {
+  height: 64px;
+  padding-left: 24px;
+  overflow: hidden;
+  line-height: 64px;
+  background: #002140;
+  transition: all 0.3s;
+}
+
+.logo img {
+  display: inline-block;
+  height: 32px;
+  vertical-align: middle;
+}
+
+.logo h1 {
+  display: inline-block;
+  margin: 0 0 0 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+  vertical-align: middle;
+}
+
+.header-index-header {
+  height: 64px;
+  line-height: 64px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.header-index-account {
+  display: inline-block;
+  height: 100%;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.header-index-account .header-index-avatar {
+  margin: 20px 8px 20px 0;
+  color: #1890ff;
+  vertical-align: top;
+  background: hsla(0, 0%, 100%, 0.85);
+}
