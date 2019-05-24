@@ -13,6 +13,18 @@ const Menu = () => {
         <Icon type="crown" />
         企业库
       </NavLink>
+      <NavLink exact to="/vacationResumes/">
+        <Icon type="table" />
+        假期简历库
+      </NavLink>
+      <NavLink exact to="/vacationEnterprises/">
+        <Icon type="crown" />
+        假期招聘库
+      </NavLink>
+      <NavLink exact to="/order/">
+        <Icon type="crown" />
+        订单
+      </NavLink>
       <NavLink exact to="/users/">
         <Icon type="crown" />
         系统用户
@@ -21,10 +33,10 @@ const Menu = () => {
         <Icon type="crown" />
         业务员
       </NavLink>
-      <NavLink exact to="/login/">
+      {/* <NavLink exact to="/login/">
         <Icon type="crown" />
         登录页
-      </NavLink>
+      </NavLink> */}
     </ul>
   );
 };

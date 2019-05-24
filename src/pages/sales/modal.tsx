@@ -1,16 +1,5 @@
-import React, { Fragment, Component, useState } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Button,
-  Radio,
-  message,
-  DatePicker,
-  Checkbox,
-  Select,
-  InputNumber,
-} from 'antd';
+import React, { useState } from 'react';
+import { Modal, Form, Input, message } from 'antd';
 import useForm from 'rc-form-hooks';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';

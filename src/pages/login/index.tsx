@@ -1,54 +1,62 @@
-import React, {
-  Fragment,
-  useEffect,
-  useReducer,
-  useState,
-  useRef,
-} from 'react';
-import {
-  Table,
-  Divider,
-  Popconfirm,
-  message,
-  Button,
-  Form,
-  Input,
-  Select,
-  InputNumber,
-  Cascader,
-  DatePicker,
-  Icon,
-  Checkbox,
-} from 'antd';
+import React, { useEffect, useState } from 'react';
+import { message, Button, Form, Input, Icon } from 'antd';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';
 import useForm from 'rc-form-hooks';
 import './style/index.css';
+import { object } from 'prop-types';
 
-const Login = () => {
+const Login = (props: any) => {
   interface iLogin {
     mobile: string;
     password: string;
   }
-  const { getFieldDecorator, validateFields, resetFields } = useForm<
-    iLogin
-  >();
+  const { getFieldDecorator, getFieldsValue } = useForm<iLogin>();
+  const [loginform, setLoginform] = useState({
+    username: '',
+    password: '',
+  });
+
+  useEffect(() => {
+    verifyLogin(localStorage.getItem('jwtToken'));
+  }, []);
+
+  // 验证是否登录
+  const verifyLogin = (token: any) => {
+    if (token) {
+      props.history.push('/');
+    }
+  };
+
+  const getToken = (formData: any) => {
+    console.log(formData);
+    axios
+      .post(`${Constants.API_URL}users/token`, formData)
+      .then(res => {
+        const { token } = res.data;
+        console.log(res.data);
+        //储存token到local
+        localStorage.setItem('jwtToken', token);
+        localStorage.setItem('user_mobile', formData.mobile);
+        localStorage.setItem('user_id', res.data.id);
+        localStorage.setItem('user_username', res.data.username);
+        props.history.push('/');
+      })
+      .catch(function(error) {
+        alert('用户名或密码错误');
+      });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('111');
-    validateFields()
-      .then((values: any) => {
-        // resumePost(values);
-        console.log('222');
-      })
-      .catch(console.error);
+    var values: any = getFieldsValue();
+    getToken(values);
   };
   return (
     <div className="antd-pro-layouts-user-layout-content">
       <div className="antd-pro-layouts-user-layout-top">
         <div className="antd-pro-layouts-user-layout-header">
-          <img src="https://keenthemes.com/metronic/preview/demo1/custom/pages/user/assets/media/company-logos/logo-2.png" />
+          <img src="/fan-fang.png" style={{ width: '150px' }} />
         </div>
         <div className="antd-pro-layouts-user-layout-desc">
           饭秀才灵活用工 - 全职信息管理系统
@@ -74,6 +82,7 @@ const Login = () => {
                     />
                   }
                   placeholder="手机号"
+                  id="mobile"
                 />,
               )}
             </Form.Item>
@@ -95,6 +104,7 @@ const Login = () => {
                   }
                   type="password"
                   placeholder="密码"
+                  id="password"
                 />,
               )}
             </Form.Item>

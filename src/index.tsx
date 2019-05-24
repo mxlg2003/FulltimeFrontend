@@ -4,12 +4,15 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import Login from './pages/login/index';
+// import VerifyLogin from './components/verifyLogin';
 
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
       <Route path="/login/" exact component={Login} />
+
       <Route path="/" component={App} />
+      {/* <Route path="/" component={VerifyLogin} /> */}
     </Switch>
   </BrowserRouter>,
   document.getElementById('root'),

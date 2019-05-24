@@ -19,7 +19,7 @@ import useForm from 'rc-form-hooks';
 const Option = Select.Option;
 moment.locale('zh-cn');
 
-const Resumes = () => {
+const Order = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -434,4 +434,4 @@ const Resumes = () => {
   );
 };
 
-export default Resumes;
+export default Order;

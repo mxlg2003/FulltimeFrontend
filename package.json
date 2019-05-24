@@ -5,6 +5,7 @@
   "dependencies": {
     "@types/react": "^16.8.13",
     "@types/react-dom": "^16.8.4",
+    "@types/react-router-dom": "^4.3.3",
     "antd": "^3.16.2",
     "axios": "^0.18.0",
     "lodash": "^4.17.11",
@@ -26,7 +27,6 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-
   "browserslist": [
     ">0.2%",
     "not dead",

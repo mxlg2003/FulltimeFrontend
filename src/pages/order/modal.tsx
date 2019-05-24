@@ -13,7 +13,7 @@ import useForm from 'rc-form-hooks';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';
 
-const ResumesModal = () => {
+const OrderModal = () => {
   const RadioButton = Radio.Button;
   const RadioGroup = Radio.Group;
   // const { MonthPicker, RangePicker, WeekPicker } = DatePicker;
@@ -268,4 +268,4 @@ const ResumesModal = () => {
   );
 };
 
-export default ResumesModal;
+export default OrderModal;
