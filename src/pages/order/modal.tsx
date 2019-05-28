@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   Form,
@@ -13,6 +13,8 @@ import useForm from 'rc-form-hooks';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';
 
+const { Option } = Select;
+
 const OrderModal = () => {
   const RadioButton = Radio.Button;
   const RadioGroup = Radio.Group;
@@ -20,69 +22,28 @@ const OrderModal = () => {
   const CheckboxGroup = Checkbox.Group;
 
   const { TextArea } = Input;
+  const [value, setValue] = useState();
   const [visible, setVisible] = useState(false);
+  const [enterprise_id, setEnterprise_id] = useState();
+  const [enterprise_name, setEnterprise_name] = useState();
   const [confirmLoading, setConfirmLoading] = useState(false);
-  interface iResume {
-    username: string;
-    mobile: string;
-    sex: number;
-    job_intention: number[];
-    birthday?: Date;
-    service_year?: number;
-    education?: number;
-    school?: string;
-    address?: string;
-    work_experience?: string;
-    stature?: number;
+  interface iOrder {
+    enterprise_id: string;
+    order_postName: string;
+    enterprise_name?: string;
+    search_enterprise_name?: string;
   }
 
-  const job_intentions = [
-    { label: '服务员', value: '01' },
-    { label: '传菜员', value: '02' },
-    { label: '收银员', value: '03' },
-    { label: '果汁员', value: '04' },
-    { label: '保洁', value: '05' },
-    { label: '领班', value: '06' },
-    { label: '经理', value: '07' },
-    { label: '店长', value: '08' },
-    { label: '营运总监', value: '09' },
-    { label: '迎宾员', value: '10' },
-    { label: '总经理', value: '11' },
-    { label: '灶台', value: '20' },
-    { label: '切配', value: '21' },
-    { label: '打荷', value: '22' },
-    { label: '蒸灶', value: '23' },
-    { label: '冷菜', value: '24' },
-    { label: '学徒', value: '25' },
-    { label: '勤杂', value: '26' },
-    { label: '厨师长', value: '27' },
-    { label: '行政总厨', value: '28' },
-    { label: '采购', value: '40' },
-    { label: '司机', value: '41' },
-    { label: '维修', value: '42' },
-    { label: '后勤部长', value: '43' },
-    { label: '文员', value: '61' },
-    { label: '客服', value: '62' },
-    { label: '人事经理', value: '63' },
-    { label: '办公室主任', value: '64' },
-    { label: '督导', value: '65' },
-    { label: '出纳', value: '66' },
-    { label: '主办会计', value: '67' },
-    { label: '财务经理', value: '68' },
-    { label: 'CFO', value: '69' },
-    { label: '营销人员', value: '80' },
-    { label: '客户经理', value: '81' },
-  ];
-  const { getFieldDecorator, validateFields, resetFields } = useForm<
-    iResume
-  >();
+  const {
+    getFieldDecorator,
+    getFieldsValue,
+    validateFields,
+    setFieldsValue,
+    resetFields,
+  } = useForm<iOrder>();
 
-  const resumePost = (values: object) => {
+  const orderPost = (values: object) => {
     var value: any = values;
-    if (!value.job_intention) value.job_intention = [];
-    value.job_intention = Array.prototype.join.call(
-      value.job_intention,
-    );
     var e: any = JSON.stringify(value, null, 2);
 
     console.log(e);
@@ -90,12 +51,12 @@ const OrderModal = () => {
     axios.defaults.headers.post['Content-Type'] =
       'application/json; charset=utf-8';
     axios
-      .post(`${Constants.API_URL}resumes`, e)
+      .post(`${Constants.API_URL}orders`, e)
       .then(function(response) {
         console.log(response);
         setConfirmLoading(false);
         handleReset();
-        message.success('新增简历成功', 5);
+        message.success('订单保存成功', 5);
       })
       .catch(function(error) {
         console.log(error);
@@ -111,9 +72,64 @@ const OrderModal = () => {
     e.preventDefault();
     validateFields()
       .then((values: any) => {
-        resumePost(values);
+        console.log(values);
+        orderPost(values);
       })
       .catch(console.error);
+  };
+
+  //用关键字搜索企业名称
+  const SearchInput = (props: any) => {
+    const [data, setData] = useState([]);
+
+    const fetchData = (value: string) => {
+      axios
+        .get(
+          `${Constants.API_URL}enterprises?enterprise_name=${value}`,
+        )
+        .then(function(response) {
+          console.log(response);
+          setData(response.data);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    };
+    const handleSearch = (value: string) => {
+      fetchData(value);
+    };
+
+    const handleChange = (value: any) => {
+      console.log(value.label);
+      setFieldsValue({
+        enterprise_id: value.key,
+        enterprise_name: value.label,
+      });
+      // setEnterprise_id(value.key);
+      // setEnterprise_name(value.label);
+      setValue(value.label);
+    };
+
+    const options = data.map((d: any) => (
+      <Option key={d.id}>{d.enterprise_name}</Option>
+    ));
+    return (
+      <Select
+        showSearch
+        value={value}
+        placeholder={props.placeholder}
+        style={props.style}
+        defaultActiveFirstOption={false}
+        showArrow={false}
+        filterOption={false}
+        labelInValue={true}
+        onSearch={handleSearch}
+        onChange={handleChange}
+        notFoundContent={null}
+      >
+        {options}
+      </Select>
+    );
   };
 
   return (
@@ -122,10 +138,10 @@ const OrderModal = () => {
         className="ant-btn ant-btn-primary"
         onClick={() => setVisible(true)}
       >
-        新增简历
+        新增订单
       </button>
       <Modal
-        title="新增简历"
+        title="新增订单"
         visible={visible}
         onOk={handleSubmit}
         confirmLoading={confirmLoading}
@@ -141,18 +157,41 @@ const OrderModal = () => {
           labelCol={{ span: 5 }}
           wrapperCol={{ span: 15 }}
         >
-          <Form.Item label="姓名">
-            {getFieldDecorator('username', {
+          <Form.Item label="搜索">
+            {getFieldDecorator('search_enterprise_name')(
+              <SearchInput placeholder="请搜索企业名称中包含的文字" />,
+            )}
+          </Form.Item>
+          <Form.Item label="企业名称">
+            {getFieldDecorator('enterprise_name', {
               rules: [
                 {
                   required: true,
                   message: '此项必填',
                 },
               ],
-            })(<Input placeholder="姓名" />)}
+            })(
+              <Input
+                placeholder="企业名称"
+                readOnly
+                disabled={true}
+              />,
+            )}
           </Form.Item>
-          <Form.Item label="电话">
-            {getFieldDecorator('mobile', {
+          <Form.Item label="企业id">
+            {getFieldDecorator('enterprise_id', {
+              rules: [
+                {
+                  required: true,
+                  message: '此项必填',
+                },
+              ],
+            })(
+              <Input placeholder="企业id" readOnly disabled={true} />,
+            )}
+          </Form.Item>
+          <Form.Item label="岗位名称">
+            {getFieldDecorator('order_postName', {
               rules: [
                 {
                   required: true,
@@ -160,107 +199,6 @@ const OrderModal = () => {
                 },
               ],
             })(<Input placeholder="电话" />)}
-          </Form.Item>
-          <Form.Item label="性别">
-            {getFieldDecorator('sex', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(
-              <RadioGroup name="sex">
-                <Radio value={1}>男</Radio>
-                <Radio value={2}>女</Radio>
-              </RadioGroup>,
-            )}
-          </Form.Item>
-          <Form.Item label="身高">
-            {getFieldDecorator('stature', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(<Input placeholder="身高" />)}
-          </Form.Item>
-          <Form.Item label="出生年月">
-            {getFieldDecorator('birthday', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(<Input placeholder="出生年月" type="date" />)}
-          </Form.Item>
-          <Form.Item label="工作年限">
-            {getFieldDecorator('service_year', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(
-              <Select defaultValue="0">
-                <option value="0">未在餐饮企业工作过</option>
-                <option value="1">1年</option>
-                <option value="2">2年</option>
-                <option value="3">3年</option>
-                <option value="4">4年</option>
-                <option value="5">5年</option>
-                <option value="6">6年</option>
-                <option value="7">7年</option>
-                <option value="8">8年</option>
-                <option value="9">9年</option>
-                <option value="10">10年及以上</option>
-              </Select>,
-            )}
-          </Form.Item>
-          <Form.Item label="求职意向">
-            {getFieldDecorator('job_intention', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(<CheckboxGroup options={job_intentions} />)}
-          </Form.Item>
-          <Form.Item label="最高学历">
-            {getFieldDecorator('education', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(
-              <RadioGroup name="education">
-                <RadioButton value="1 " defaultChecked>
-                  高中及以下
-                </RadioButton>
-                <RadioButton value="2">大专</RadioButton>
-                <RadioButton value="3">本科</RadioButton>
-                <RadioButton value="4">硕士及以上</RadioButton>
-              </RadioGroup>,
-            )}
-          </Form.Item>
-          <Form.Item label="毕业学校">
-            {getFieldDecorator('school')(
-              <Input placeholder="毕业学校" />,
-            )}
-          </Form.Item>
-          <Form.Item label="家庭住址">
-            {getFieldDecorator('address')(<TextArea rows={4} />)}
-          </Form.Item>
-          <Form.Item label="工作经历">
-            {getFieldDecorator('work_experience')(
-              <TextArea rows={4} />,
-            )}
           </Form.Item>
         </Form>
       </Modal>
