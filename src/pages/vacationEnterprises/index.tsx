@@ -97,7 +97,7 @@ const VacationEnterprises = () => {
       render: (text: any, record: any) =>
         record.posts.map((e: any) => {
           let color = 'red';
-          switch (parseInt(e.post_id) / 20) {
+          switch (Math.floor(parseInt(e.post_id) / 20)) {
             case 1:
               color = 'geekblue';
               break;

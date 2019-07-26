@@ -30,6 +30,7 @@ const Enterprises = () => {
     mobile: '',
     telephone: '',
     posts: '',
+    cuisines: '',
     update_time: '',
   });
   const useDataApi = (url: any) => {
@@ -39,7 +40,7 @@ const Enterprises = () => {
           params: search,
         })
         .then(function(response) {
-          console.log(response);
+          // console.log(response);
           setLoading(false);
           setData(response.data);
         })
@@ -96,7 +97,7 @@ const Enterprises = () => {
       render: (text: any, record: any) =>
         record.posts.map((e: any) => {
           let color = 'red';
-          switch (parseInt(e.post_id) / 20) {
+          switch (Math.floor(parseInt(e.post_id) / 20)) {
             case 1:
               color = 'geekblue';
               break;
@@ -121,6 +122,21 @@ const Enterprises = () => {
           );
         }),
     },
+    {
+      title: '招聘菜系',
+      dataIndex: 'cuisines',
+      render: (text: any, record: any) =>
+        record.cuisines.map((e: any) => {
+          let color = 'red';
+          var content = e.cuisine_name + ' x ' + e.number;
+
+          return (
+            <Tag color={color} key={e.cuisine_id}>
+              {content}
+            </Tag>
+          );
+        }),
+    },
 
     {
       title: '登记时间',
@@ -138,23 +154,23 @@ const Enterprises = () => {
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
     },
 
-    {
-      title: '操作',
+    // {
+    //   title: '操作',
 
-      render: (text: any, record: any) => (
-        <Popconfirm
-          title="确认删除? "
-          onConfirm={() => confirm(record.id)}
-          okText="确认"
-          cancelText="取消"
-        >
-          {/* <a href="">删除</a> */}
-          <Button type="danger" size="small">
-            删除
-          </Button>
-        </Popconfirm>
-      ),
-    },
+    //   render: (text: any, record: any) => (
+    //     <Popconfirm
+    //       title="确认删除? "
+    //       onConfirm={() => confirm(record.id)}
+    //       okText="确认"
+    //       cancelText="取消"
+    //     >
+    //       {/* <a href="">删除</a> */}
+    //       <Button type="danger" size="small">
+    //         删除
+    //       </Button>
+    //     </Popconfirm>
+    //   ),
+    // },
   ];
 
   function confirm(id: any) {
@@ -182,6 +198,7 @@ const Enterprises = () => {
       mobile?: string;
       telephone?: string;
       posts?: string;
+      cuisines?: string;
       update_time?: string;
     }
     const job_intentions = [
@@ -220,6 +237,19 @@ const Enterprises = () => {
       { label: '营销人员', value: '80' },
       { label: '客户经理', value: '81' },
     ];
+    const cuisineList = [
+      { label: '徽系', value: '01' },
+      { label: '本地系', value: '02' },
+      { label: '川系', value: '03' },
+      { label: '沪杭系', value: '04' },
+      { label: '湘系', value: '05' },
+      { label: '粤系', value: '06' },
+      { label: '淮扬系', value: '07' },
+      { label: '东北系', value: '08' },
+      { label: '火锅系', value: '09' },
+      { label: '赣系', value: '10' },
+      { label: '鲁系', value: '11' },
+    ];
 
     const {
       getFieldDecorator,
@@ -242,6 +272,7 @@ const Enterprises = () => {
         mobile: '',
         telephone: '',
         posts: '',
+        cuisines: '',
         update_time: '',
       });
       // console.log(search);
@@ -317,6 +348,22 @@ const Enterprises = () => {
               {job_intentions.map(job => (
                 <Option value={job.value} key={job.value}>
                   {job.label}
+                </Option>
+              ))}
+            </Select>,
+          )}
+        </Form.Item>
+        <Form.Item label="招聘菜系">
+          {getFieldDecorator('cuisines', {
+            initialValue: search.cuisines,
+          })(
+            <Select placeholder="招聘菜系" style={{ width: 100 }}>
+              {cuisineList.map(cuisineList => (
+                <Option
+                  value={cuisineList.value}
+                  key={cuisineList.value}
+                >
+                  {cuisineList.label}
                 </Option>
               ))}
             </Select>,

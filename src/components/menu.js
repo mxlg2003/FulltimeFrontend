@@ -21,7 +21,7 @@ const Menu = () => {
         <Icon type="crown" />
         假期招聘库
       </NavLink>
-      <NavLink exact to="/order/">
+      <NavLink exact to="/orders/">
         <Icon type="crown" />
         订单
       </NavLink>
@@ -33,10 +33,26 @@ const Menu = () => {
         <Icon type="crown" />
         业务员
       </NavLink>
-      {/* <NavLink exact to="/login/">
+      <NavLink exact to="/dispatchs/">
         <Icon type="crown" />
-        登录页
-      </NavLink> */}
+        派遣记录
+      </NavLink>
+      <NavLink exact to="/incomes/">
+        <Icon type="crown" />
+        收入记录
+      </NavLink>
+      <NavLink exact to="/disbursements/">
+        <Icon type="crown" />
+        补贴记录
+      </NavLink>
+      <NavLink exact to="/role/">
+        <Icon type="crown" />
+        角色管理
+      </NavLink>
+      <NavLink exact to="/person/">
+        <Icon type="crown" />
+        人员管理
+      </NavLink>
     </ul>
   );
 };

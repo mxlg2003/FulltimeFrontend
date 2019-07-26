@@ -13,21 +13,24 @@ import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import * as Constants from '../../utils/constants';
-import OrderModal from './modal';
 import useForm from 'rc-form-hooks';
 
 const Option = Select.Option;
 moment.locale('zh-cn');
 
-const Order = () => {
+const Disbursement = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState({
     enterprise_name: '',
     order_postName: '',
-    create_time: '',
-    effective_date: '',
+    username: '',
+    mobile: '',
+    sum: 0,
+    start_date: '',
+    issue_date: '',
+    end_date: '',
   });
   const useDataApi = (url: any) => {
     const fetchData = async () => {
@@ -43,6 +46,9 @@ const Order = () => {
         .catch(function(error) {
           console.log(error);
         });
+
+      // setData(response.data);
+      // setLoading(false);
     };
 
     useEffect(() => {
@@ -51,69 +57,75 @@ const Order = () => {
 
     return data;
   };
-
   const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}orders`),
+    useDataApi(`${Constants.API_URL}disbursements`),
   );
 
   const columns = [
     {
-      title: '订单编号',
-      dataIndex: 'id',
-      render: (text: any, record: any) => (
-        <a href={'/order/detail/' + record.id}>{text}</a>
-      ),
+      title: '岗位名称',
+      dataIndex: 'order_postName',
       key: 'id',
     },
     {
-      title: '岗位名称',
-      dataIndex: 'order_postName',
-      render: (text: any, record: any) => (
-        <a href={'/order/detail/' + record.id}>{text}</a>
-      ),
-    },
-    {
-      title: '关联商户名称',
+      title: '企业名称',
       dataIndex: 'enterprise_name',
     },
 
     {
-      title: '登记时间',
-      dataIndex: 'sex',
+      title: '收款人姓名',
+      dataIndex: 'username',
+    },
+    {
+      title: '收款人手机号',
+      dataIndex: 'mobile',
+    },
+    {
+      title: '金额',
+      dataIndex: 'sum',
+    },
+    {
+      title: '补贴发放日期',
+      dataIndex: 'issue_date',
       render: (text: any, record: any) =>
-        moment.unix(record.create_time).format('YYYY年MM月DD日'),
+        moment.unix(record.issue_date).format('YYYY年MM月DD日'),
     },
     {
-      title: '共收费',
-      dataIndex: 'total_income',
-    },
-    {
-      title: '费用有效日期',
-      dataIndex: 'effective_date',
+      title: '补贴计时开始',
+      dataIndex: 'start_date',
       render: (text: any, record: any) =>
-        record.effective_date
-          ? moment
-              .unix(record.effective_date)
-              .format('YYYY年MM月DD日')
-          : '未收入',
+        moment.unix(record.start_date).format('YYYY年MM月DD日'),
     },
     {
-      title: '补贴发放合计',
-      dataIndex: 'total_disbursement',
+      title: '补贴计时结束',
+      dataIndex: 'end_date',
+      render: (text: any, record: any) =>
+        moment.unix(record.end_date).format('YYYY年MM月DD日'),
     },
-    // {
-    //   title: 'Action',
-    //   render: (text: any, record: any) => (
-    //     <Popconfirm
-    //       title="确认删除这个订单? "
-    //       onConfirm={() => confirm(record.id)}
-    //       okText="确认"
-    //       cancelText="取消"
-    //     >
-    //       <button className="ant-btn ant-btn-danger">删除</button>
-    //     </Popconfirm>
-    //   ),
-    // },
+    {
+      title: '备注',
+      dataIndex: 'remark',
+    },
+
+    {
+      title: '最后更新时间',
+      dataIndex: 'update_time',
+      render: (text: any, record: any) =>
+        moment.unix(record.update_time).format('YYYY年MM月DD日'),
+    },
+    {
+      title: 'Action',
+      render: (text: any, record: any) => (
+        <Popconfirm
+          title="确认删除这个订单? "
+          onConfirm={() => confirm(record.id)}
+          okText="确认"
+          cancelText="取消"
+        >
+          <button className="ant-btn ant-btn-danger">删除</button>
+        </Popconfirm>
+      ),
+    },
   ];
 
   function confirm(id: any) {
@@ -122,7 +134,7 @@ const Order = () => {
   }
   const deleteOrders = (id: any) => {
     axios
-      .delete(`${Constants.API_URL}orders/${id}`)
+      .delete(`${Constants.API_URL}disbursements/${id}`)
       .then(function(response) {
         setData(data.filter((e: any) => e.id !== id));
         message.success('删除成功', 5);
@@ -132,12 +144,16 @@ const Order = () => {
       });
   };
 
-  const OrdersSearch = () => {
+  const DisbursementsSearch = () => {
     interface iResume {
       enterprise_name?: string;
       order_postName?: string;
-      create_time?: string;
-      effective_date?: string;
+      sum?: number;
+      start_date?: string;
+      end_date?: string;
+      username?: string;
+      mobile?: string;
+      issue_date?: string;
     }
 
     const {
@@ -150,12 +166,7 @@ const Order = () => {
       e.preventDefault();
       setLoading(true);
       var values: any = getFieldsValue();
-      // if (values.effective_date) {
-      //   values.effective_date = moment(values.effective_date).format(
-      //     'YYYY-MM-DD',
-      //   );
-      //   console.log(values.effective_date);
-      // }
+      console.log(values);
       setSearch(values);
     };
 
@@ -164,8 +175,12 @@ const Order = () => {
       setSearch({
         enterprise_name: '',
         order_postName: '',
-        create_time: '',
-        effective_date: '',
+        username: '',
+        mobile: '',
+        sum: 0,
+        start_date: '',
+        issue_date: '',
+        end_date: '',
       });
       // console.log(search);
       // resumeSearch(search);
@@ -194,16 +209,39 @@ const Order = () => {
             />,
           )}
         </Form.Item>
-        <Form.Item label="创建时间">
-          {getFieldDecorator('create_time', {
-            initialValue: search.create_time,
+        <Form.Item label="姓名">
+          {getFieldDecorator('username', {
+            initialValue: search.username,
+          })(<Input placeholder="姓名" />)}
+        </Form.Item>
+        <Form.Item label="电话">
+          {getFieldDecorator('mobile', {
+            initialValue: search.mobile,
+          })(<Input placeholder="电话" />)}
+        </Form.Item>
+        <Form.Item label="金额(以上)">
+          {getFieldDecorator('sum', {
+            initialValue: search.sum,
+          })(
+            <InputNumber placeholder="金额" style={{ width: 100 }} />,
+          )}
+        </Form.Item>
+        <Form.Item label="补贴计时开始(之前)">
+          {getFieldDecorator('start_date', {
+            initialValue: search.start_date,
           })(<DatePicker />)}
         </Form.Item>
-        <Form.Item label="费用有效期(之前)">
-          {getFieldDecorator('effective_date', {
-            initialValue: search.effective_date,
+        <Form.Item label="补贴计时结束(之前)">
+          {getFieldDecorator('end_date', {
+            initialValue: search.end_date,
           })(<DatePicker />)}
         </Form.Item>
+        <Form.Item label="补贴发放日期(之前)">
+          {getFieldDecorator('issue_date', {
+            initialValue: search.issue_date,
+          })(<DatePicker />)}
+        </Form.Item>
+
         <Form.Item>
           <button className="ant-btn ant-btn-primary">过滤</button>
           <button
@@ -220,8 +258,7 @@ const Order = () => {
 
   return (
     <Fragment>
-      <OrderModal />
-      <OrdersSearch />
+      <DisbursementsSearch />
       <Table
         columns={columns}
         dataSource={data}
@@ -232,9 +269,10 @@ const Order = () => {
         }}
         loading={loading}
         rowKey="id"
+        //   scroll={{ x: 1600, y: 800 }}
       />
     </Fragment>
   );
 };
 
-export default Order;
+export default Disbursement;

@@ -14,8 +14,10 @@ import axios from 'axios';
 import * as Constants from '../../utils/constants';
 
 const { Option } = Select;
+const { TextArea } = Input;
 
-const OrderModal = () => {
+const DispatchModal = (order: any) => {
+  //   const order_id = match.params.id;
   const RadioButton = Radio.Button;
   const RadioGroup = Radio.Group;
   // const { MonthPicker, RangePicker, WeekPicker } = DatePicker;
@@ -24,17 +26,22 @@ const OrderModal = () => {
   const { TextArea } = Input;
   const [value, setValue] = useState();
   const [visible, setVisible] = useState(false);
-  const [enterprise_id, setEnterprise_id] = useState();
-  const [enterprise_name, setEnterprise_name] = useState();
+  //   const [enterprise_id, setEnterprise_id] = useState();
   const [user_id, setUse_id] = useState(
     localStorage.getItem('user_id') || '',
   );
   const [confirmLoading, setConfirmLoading] = useState(false);
-  interface iOrder {
-    enterprise_id: string;
-    order_postName: string;
-    enterprise_name?: string;
-    search_enterprise_name?: string;
+  interface iDispatch {
+    enterprise_id: number;
+    order_id: number;
+    resume_id?: string;
+    resume_username?: string;
+    resume_mobile?: string;
+    search_resume_name?: string;
+    search_resume_mobile?: string;
+    start_date?: string;
+    end_date?: string;
+    remark?: string;
   }
 
   const {
@@ -43,12 +50,13 @@ const OrderModal = () => {
     validateFields,
     setFieldsValue,
     resetFields,
-  } = useForm<iOrder>();
+  } = useForm<iDispatch>();
 
-  const orderPost = (values: object) => {
+  const dispatchPost = (values: object) => {
     var value: any = values;
     value.users_id = user_id;
-    console.log(value);
+    value.order_id = order.order_id;
+    value.enterprise_id = order.enterprise_id;
     var e: any = JSON.stringify(value, null, 2);
 
     console.log(e);
@@ -56,12 +64,12 @@ const OrderModal = () => {
     axios.defaults.headers.post['Content-Type'] =
       'application/json; charset=utf-8';
     axios
-      .post(`${Constants.API_URL}orders`, e)
+      .post(`${Constants.API_URL}dispatchs`, e)
       .then(function(response) {
         console.log(response);
         setConfirmLoading(false);
         handleReset();
-        message.success('订单保存成功', 5);
+        message.success('派遣记录保存成功', 5);
       })
       .catch(function(error) {
         console.log(error);
@@ -78,27 +86,39 @@ const OrderModal = () => {
     validateFields()
       .then((values: any) => {
         console.log(values);
-        orderPost(values);
+        dispatchPost(values);
       })
       .catch(console.error);
   };
 
-  //用关键字搜索企业名称
+  //用关键字搜索简历中姓名
   const SearchInput = (props: any) => {
     const [data, setData] = useState([]);
 
-    const fetchData = (value: string) => {
-      axios
-        .get(
-          `${Constants.API_URL}enterprises?enterprise_name=${value}`,
-        )
-        .then(function(response) {
-          console.log(response);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+    const fetchData = (value: any) => {
+      if (value.trim()) {
+        if (/^\d+$/.test(value)) {
+          axios
+            .get(`${Constants.API_URL}resumes?mobile=${value}`)
+            .then(function(response) {
+              console.log(response);
+              setData(response.data);
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        } else {
+          axios
+            .get(`${Constants.API_URL}resumes?username=${value}`)
+            .then(function(response) {
+              console.log(response);
+              setData(response.data);
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
+      }
     };
     const handleSearch = (value: string) => {
       fetchData(value);
@@ -107,8 +127,8 @@ const OrderModal = () => {
     const handleChange = (value: any) => {
       console.log(value.label);
       setFieldsValue({
-        enterprise_id: value.key,
-        enterprise_name: value.label,
+        resume_id: value.key,
+        resume_username: value.label,
       });
       // setEnterprise_id(value.key);
       // setEnterprise_name(value.label);
@@ -116,7 +136,9 @@ const OrderModal = () => {
     };
 
     const options = data.map((d: any) => (
-      <Option key={d.id}>{d.enterprise_name}</Option>
+      <Option key={d.id}>
+        {d.username}[{d.mobile}]
+      </Option>
     ));
     return (
       <Select
@@ -138,15 +160,21 @@ const OrderModal = () => {
   };
 
   return (
-    <div style={{ margin: '0 0 24px' }}>
+    <div
+      style={{
+        margin: '0  24px',
+        textAlign: 'right',
+        display: 'inline',
+      }}
+    >
       <button
         className="ant-btn ant-btn-primary"
         onClick={() => setVisible(true)}
       >
-        新增订单
+        新增派遣记录
       </button>
       <Modal
-        title="新增订单"
+        title="新增派遣记录"
         visible={visible}
         onOk={handleSubmit}
         confirmLoading={confirmLoading}
@@ -162,13 +190,17 @@ const OrderModal = () => {
           labelCol={{ span: 5 }}
           wrapperCol={{ span: 15 }}
         >
-          <Form.Item label="搜索">
-            {getFieldDecorator('search_enterprise_name')(
-              <SearchInput placeholder="请搜索企业名称中包含的文字" />,
+          <Form.Item label="搜索简历">
+            {getFieldDecorator('search_resume_name')(
+              <SearchInput placeholder="请在简历中搜索派遣员工姓名或手机号" />,
             )}
           </Form.Item>
-          <Form.Item label="企业名称">
-            {getFieldDecorator('enterprise_name', {
+          {/* {console.log(
+            enterprise_id.enterprise_id,
+            enterprise_id.order_id,
+          )} */}
+          <Form.Item label="简历id">
+            {getFieldDecorator('resume_id', {
               rules: [
                 {
                   required: true,
@@ -176,34 +208,42 @@ const OrderModal = () => {
                 },
               ],
             })(
-              <Input
-                placeholder="企业名称"
-                readOnly
-                disabled={true}
+              <Input placeholder="简历id" readOnly disabled={true} />,
+            )}
+          </Form.Item>
+          <Form.Item label="姓名/电话">
+            {getFieldDecorator('resume_username', {
+              rules: [
+                {
+                  required: true,
+                  message: '此项必填',
+                },
+              ],
+            })(<Input placeholder="姓名" readOnly disabled={true} />)}
+          </Form.Item>
+
+          <Form.Item label="派遣开始日期">
+            {getFieldDecorator('start_date', {
+              rules: [
+                {
+                  required: true,
+                  message: '此项必填',
+                },
+              ],
+            })(<Input placeholder="派遣开始日期" type="date" />)}
+          </Form.Item>
+          <Form.Item label="派遣结束日期">
+            {getFieldDecorator('end_date')(
+              <Input placeholder="派遣开始日期" type="date" />,
+            )}
+          </Form.Item>
+          <Form.Item label="备注">
+            {getFieldDecorator('remark')(
+              <TextArea
+                placeholder=""
+                autosize={{ minRows: 2, maxRows: 6 }}
               />,
             )}
-          </Form.Item>
-          <Form.Item label="企业id">
-            {getFieldDecorator('enterprise_id', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(
-              <Input placeholder="企业id" readOnly disabled={true} />,
-            )}
-          </Form.Item>
-          <Form.Item label="岗位名称">
-            {getFieldDecorator('order_postName', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(<Input placeholder="岗位名称" />)}
           </Form.Item>
         </Form>
       </Modal>
@@ -211,4 +251,4 @@ const OrderModal = () => {
   );
 };
 
-export default OrderModal;
+export default DispatchModal;

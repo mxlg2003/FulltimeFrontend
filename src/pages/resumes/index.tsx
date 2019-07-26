@@ -8,6 +8,7 @@ import {
   Select,
   InputNumber,
   DatePicker,
+  Tag,
 } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
@@ -22,12 +23,13 @@ moment.locale('zh-cn');
 const Resumes = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [refresh_time, setRefresh_time] = useState(Date());
   const [search, setSearch] = useState({
     username: '',
     mobile: '',
     sex: '',
     job_intention: '',
+    cuisine: '',
     stature: '',
     yid: '',
     service_year: '',
@@ -41,6 +43,9 @@ const Resumes = () => {
       const response = await axios
         .get(url, {
           params: search,
+          headers: {
+            Authorization: localStorage.getItem('jwtToken'),
+          },
         })
         .then(function(response) {
           console.log(response);
@@ -57,7 +62,7 @@ const Resumes = () => {
 
     useEffect(() => {
       fetchData();
-    }, [search]);
+    }, [search, refresh_time]);
 
     return data;
   };
@@ -86,6 +91,42 @@ const Resumes = () => {
     {
       title: '求职意向',
       dataIndex: 'job_intention',
+      // render: (text: any, record: any) => {
+      //   if (record.posts === '未填写求职意向	') {
+      //     record.posts.map((e: any) => {
+      //       let color = 'red';
+      //       switch (Math.floor(parseInt(e.post_id) / 20)) {
+      //         case 1:
+      //           color = 'geekblue';
+      //           break;
+      //         case 2:
+      //           color = 'green';
+      //           break;
+      //         case 3:
+      //           color = 'orange';
+      //           break;
+      //         case 4:
+      //           color = 'purple';
+      //           break;
+      //         default:
+      //           color = 'red';
+      //       }
+      //       var content = e.post_name + ' x ' + e.number;
+
+      //       return (
+      //         <Tag color={color} key={e.post_id}>
+      //           {content}
+      //         </Tag>
+      //       );
+      //     });
+      //   } else {
+      //     return record.posts;
+      //   }
+      // },
+    },
+    {
+      title: '菜系',
+      dataIndex: 'cuisine',
     },
     {
       title: '期望月薪',
@@ -121,6 +162,22 @@ const Resumes = () => {
     {
       title: '合作状态',
       dataIndex: 'cooperation_state',
+      render: (text: any, record: any) => {
+        let color = 'red';
+        switch (record.cooperation_state) {
+          case '未合作':
+            color = 'geekblue';
+            break;
+          case '合作中':
+            color = 'green';
+            break;
+        }
+        return (
+          <Tag color={color} key={record.id}>
+            {record.cooperation_state}
+          </Tag>
+        );
+      },
     },
     {
       title: '在职状态',
@@ -148,13 +205,23 @@ const Resumes = () => {
       title: 'Action',
 
       render: (text: any, record: any) => (
+        // <Popconfirm
+        //   title="确认删除这个简历? "
+        //   onConfirm={() => confirm(record.id)}
+        //   okText="确认"
+        //   cancelText="取消"
+        // >
+        //   <button className="ant-btn ant-btn-danger">删除</button>
+        // </Popconfirm>
         <Popconfirm
-          title="确认删除这个简历? "
-          onConfirm={() => confirm(record.id)}
+          title="确认变更合作状态"
+          onConfirm={() => change_cooperation_state(record.id)}
           okText="确认"
           cancelText="取消"
         >
-          <button className="ant-btn ant-btn-danger">删除</button>
+          <button className="ant-btn ant-btn-danger">
+            变更合作状态
+          </button>
         </Popconfirm>
       ),
     },
@@ -163,6 +230,18 @@ const Resumes = () => {
   function confirm(id: any) {
     console.log(id);
     deleteResumes(id);
+  }
+  function change_cooperation_state(id: any) {
+    console.log(id);
+    axios
+      .post(`${Constants.API_URL}resumes_cooperation_state/${id}`)
+      .then(function() {
+        setRefresh_time(Date());
+        message.success('修改成功', 5);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   }
   const deleteResumes = (id: any) => {
     axios
@@ -182,6 +261,7 @@ const Resumes = () => {
       mobile?: string;
       sex?: string;
       job_intention?: string;
+      cuisine?: string;
       update_time?: string;
       service_year?: string;
       education?: string;
@@ -231,6 +311,20 @@ const Resumes = () => {
       { label: '客户经理', value: '81' },
     ];
 
+    const cuisine = [
+      { label: '徽系', value: '01' },
+      { label: '本地系', value: '02' },
+      { label: '川系', value: '03' },
+      { label: '沪杭系', value: '04' },
+      { label: '湘系', value: '05' },
+      { label: '粤系', value: '06' },
+      { label: '淮扬系', value: '07' },
+      { label: '东北系', value: '08' },
+      { label: '火锅系', value: '09' },
+      { label: '赣系', value: '10' },
+      { label: '鲁系', value: '11' },
+    ];
+
     const {
       getFieldDecorator,
 
@@ -251,6 +345,7 @@ const Resumes = () => {
         mobile: '',
         sex: '',
         job_intention: '',
+        cuisine: '',
         stature: '',
         yid: '',
         residence: '',
@@ -327,6 +422,19 @@ const Resumes = () => {
             </Select>,
           )}
         </Form.Item>
+        <Form.Item label="擅长菜系">
+          {getFieldDecorator('cuisine', {
+            initialValue: search.cuisine,
+          })(
+            <Select placeholder="擅长菜系" style={{ width: 100 }}>
+              {cuisine.map(x => (
+                <Option value={x.value} key={x.value}>
+                  {x.label}
+                </Option>
+              ))}
+            </Select>,
+          )}
+        </Form.Item>
         <Form.Item label="身高至少">
           {getFieldDecorator('stature', {
             initialValue: search.stature,
@@ -370,7 +478,7 @@ const Resumes = () => {
             <Select placeholder="合作状态" style={{ width: 120 }}>
               <Option value="">全部</Option>
               <Option value="0">未合作</Option>
-              <Option value="1">已合作</Option>
+              <Option value="1">合作中</Option>
             </Select>,
           )}
         </Form.Item>
@@ -416,7 +524,7 @@ const Resumes = () => {
 
   return (
     <Fragment>
-      <ResumesModal />
+      {/* <ResumesModal /> */}
       <ResumesSearch />
       <Table
         columns={columns}

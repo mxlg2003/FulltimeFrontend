@@ -14,6 +14,10 @@ import VacationResumes from './pages/vacationResumes/index';
 import Users from './pages/users/index';
 import Sales from './pages/sales/index';
 import Order from './pages/order/index';
+import Dispatch from './pages/dispatch/index';
+import Income from './pages/income/index';
+import Disbursement from './pages/disbursement/index';
+import OrderDetail from './pages/order/detail';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -60,8 +64,12 @@ const App = (props: any) => {
               component={VacationEnterprises}
             />
             <Route path="/users/" component={Users} />
-            <Route path="/order/" component={Order} />
+            <Route path="/orders/" component={Order} />
             <Route path="/sales/" component={Sales} />
+            <Route path="/dispatchs/" component={Dispatch} />
+            <Route path="/incomes/" component={Income} />
+            <Route path="/disbursements/" component={Disbursement} />
+            <Route path="/order/detail/:id" component={OrderDetail} />
             <Route component={NoMatch} />
           </Switch>
         </Content>

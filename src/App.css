@@ -77,3 +77,11 @@
   vertical-align: top;
   background: hsla(0, 0%, 100%, 0.85);
 }
+
+.ant-col {
+  padding: .5rem 1rem;
+}
+
+.m-16 {
+  margin: 0 1rem;
+}
