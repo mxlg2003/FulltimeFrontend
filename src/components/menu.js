@@ -5,7 +5,7 @@ import { Icon } from 'antd';
 const Menu = () => {
   return (
     <ul className="ant-menu ant-menu-dark ant-menu-root ant-menu-inline">
-      <NavLink exact to="/">
+      <NavLink exact to="/resumes/">
         <Icon type="table" />
         简历库
       </NavLink>
@@ -49,9 +49,9 @@ const Menu = () => {
         <Icon type="crown" />
         角色管理
       </NavLink>
-      <NavLink exact to="/person/">
+      <NavLink exact to="/shops/">
         <Icon type="crown" />
-        人员管理
+        门店管理
       </NavLink>
     </ul>
   );

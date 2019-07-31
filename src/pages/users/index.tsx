@@ -21,6 +21,7 @@ moment.locale('zh-cn');
 const Users = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [shopData, setShopData] = useState([]);
   const useDataApi = (url: any) => {
     const fetchData = async () => {
       const response = await axios
@@ -45,6 +46,22 @@ const Users = () => {
     return data;
   };
 
+  const fetchData = async (url: any) => {
+    const response = await axios
+      .get(url)
+      .then(function(response) {
+        console.log(response);
+        setShopData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}shops`);
+  }, []);
+
   const [resumes, setResumes] = useState(
     useDataApi(`${Constants.API_URL}users`),
   );
@@ -54,13 +71,24 @@ const Users = () => {
       title: '姓名',
       dataIndex: 'username',
       key: 'id',
-      width: 100,
     },
 
     {
       title: '手机号',
       dataIndex: 'mobile',
       key: 'mobile',
+    },
+    {
+      title: '所属门店',
+      dataIndex: 'shop_name',
+    },
+    {
+      title: '备注',
+      dataIndex: 'remark',
+    },
+    {
+      title: '更新人',
+      dataIndex: 'update_user_name',
     },
 
     {
@@ -103,22 +131,26 @@ const Users = () => {
     const user: any = record.record;
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
+
     interface iUser {
       username: string;
       mobile: string;
-      password: string;
+      password?: string;
+      shop_id?: number;
+      remark?: string;
     }
 
     const {
       getFieldDecorator,
       validateFields,
       resetFields,
+      getFieldsValue,
     } = useForm<iUser>();
 
     const userPost = (values: object) => {
       var value: any = values;
       console.log(value);
-      value.id = user.id;
+      value.users_id = localStorage.getItem('user_id');
       var e: any = JSON.stringify(value, null, 2);
       console.log(e);
       // setConfirmLoading(true);
@@ -146,10 +178,33 @@ const Users = () => {
       e.preventDefault();
       validateFields()
         .then((values: any) => {
+          console.log(values);
+          //var values: any = getFieldsValue();
           userPost(values);
         })
         .catch(console.error);
     };
+
+    function onChange(value: any) {
+      console.log(`selected ${value}`);
+    }
+
+    function onBlur() {
+      console.log('blur');
+    }
+
+    function onFocus() {
+      console.log('focus');
+    }
+
+    function onSearch(val: any) {
+      console.log('search:', val);
+    }
+    const options = shopData.map((d: any) => (
+      <Option key={d.id} value={d.id}>
+        {d.shop_name}
+      </Option>
+    ));
     return (
       <Fragment>
         <button
@@ -159,58 +214,96 @@ const Users = () => {
         >
           修改
         </button>
-        <Modal
-          // title="修改系统用户信息"
-          title={user.username}
-          visible={visible}
-          onOk={handleSubmit}
-          confirmLoading={confirmLoading}
-          onCancel={handleReset}
-          okText="提交"
-          cancelText="取消"
-          width="60%"
-        >
-          <Form
-            onSubmit={handleSubmit}
-            onReset={handleReset}
-            layout="horizontal"
-            labelCol={{ span: 5 }}
-            wrapperCol={{ span: 15 }}
+        {visible && (
+          <Modal
+            // title="修改系统用户信息"
+            title={user.username}
+            visible={visible}
+            onOk={handleSubmit}
+            confirmLoading={confirmLoading}
+            onCancel={handleReset}
+            okText="提交"
+            cancelText="取消"
+            width="60%"
           >
-            <Form.Item label="姓名">
-              {getFieldDecorator('username', {
-                initialValue: user.username,
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="姓名" />)}
-            </Form.Item>
-            <Form.Item label="电话">
-              {getFieldDecorator('mobile', {
-                initialValue: user.mobile,
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="电话" />)}
-            </Form.Item>
-            <Form.Item label="密码">
-              {getFieldDecorator('password', {
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="密码" type="password" />)}
-            </Form.Item>
-          </Form>
-        </Modal>
+            <Form
+              onSubmit={handleSubmit}
+              onReset={handleReset}
+              layout="horizontal"
+              labelCol={{ span: 5 }}
+              wrapperCol={{ span: 15 }}
+            >
+              <Form.Item label="姓名">
+                {getFieldDecorator('username', {
+                  initialValue: user.username,
+                  rules: [
+                    {
+                      required: true,
+                      message: '此项必填',
+                    },
+                  ],
+                })(<Input placeholder="姓名" />)}
+              </Form.Item>
+              <Form.Item label="电话">
+                {getFieldDecorator('mobile', {
+                  initialValue: user.mobile,
+                  rules: [
+                    {
+                      required: true,
+                      message: '此项必填',
+                    },
+                  ],
+                })(<Input placeholder="电话" />)}
+              </Form.Item>
+              <Form.Item label="密码">
+                {getFieldDecorator('password')(
+                  <Input placeholder="密码" type="password" />,
+                )}
+              </Form.Item>
+              <Form.Item label="所属门店">
+                {getFieldDecorator('shop_id', {
+                  rules: [
+                    {
+                      required: false,
+                      message: '',
+                    },
+                  ],
+                  initialValue: user.shop_id,
+                })(
+                  <Select
+                    showSearch
+                    style={{ width: 200 }}
+                    placeholder="请选择所属门店"
+                    optionFilterProp="children"
+                    onChange={onChange}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                    onSearch={onSearch}
+                    allowClear={true}
+                    // value={user.shop_id}
+                    // defaultValue={user.shop_id}
+                    // filterOption={(input, option) =>
+                    //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    // }
+                  >
+                    {options}
+                  </Select>,
+                )}
+              </Form.Item>
+              <Form.Item label="备注">
+                {getFieldDecorator('remark', {
+                  initialValue: user.remark,
+                  rules: [
+                    {
+                      required: false,
+                      message: '',
+                    },
+                  ],
+                })(<Input placeholder="备注" />)}
+              </Form.Item>
+            </Form>
+          </Modal>
+        )}
       </Fragment>
     );
   };

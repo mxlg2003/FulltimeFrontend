@@ -18,6 +18,7 @@ import Dispatch from './pages/dispatch/index';
 import Income from './pages/income/index';
 import Disbursement from './pages/disbursement/index';
 import OrderDetail from './pages/order/detail';
+import Shops from './pages/shops/index';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -53,7 +54,7 @@ const App = (props: any) => {
           }}
         >
           <Switch>
-            <Route path="/" exact component={Resumes} />
+            <Route path="/Resumes/" exact component={Resumes} />
             <Route path="/enterprises/" component={Enterprises} />
             <Route
               path="/VacationResumes/"
@@ -69,7 +70,11 @@ const App = (props: any) => {
             <Route path="/dispatchs/" component={Dispatch} />
             <Route path="/incomes/" component={Income} />
             <Route path="/disbursements/" component={Disbursement} />
-            <Route path="/order/detail/:id" component={OrderDetail} />
+            <Route
+              path="/order/detail/:id/"
+              component={OrderDetail}
+            />
+            <Route path="/shops/" component={Shops} />
             <Route component={NoMatch} />
           </Switch>
         </Content>

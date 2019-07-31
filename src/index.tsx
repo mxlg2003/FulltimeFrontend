@@ -12,14 +12,14 @@ import Login from './pages/login/index';
 // import VerifyLogin from './components/verifyLogin';
 
 ReactDOM.render(
-  <HashRouter>
+  <BrowserRouter>
     <Switch>
       <Route path="/login/" exact component={Login} />
 
       <Route path="/" component={App} />
       {/* <Route path="/" component={VerifyLogin} /> */}
     </Switch>
-  </HashRouter>,
+  </BrowserRouter>,
   document.getElementById('root'),
 );
 
