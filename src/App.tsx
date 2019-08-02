@@ -6,7 +6,7 @@ import './App.css';
 import Logo from './components/logo';
 import Header from './components/header';
 import NoMatch from './components/error';
-import Menu from './components/menu';
+import Menu from './pages/menu';
 import Resumes from './pages/resumes/index';
 import Enterprises from './pages/enterprises/index';
 import VacationEnterprises from './pages/vacationEnterprises/index';
@@ -19,6 +19,7 @@ import Income from './pages/income/index';
 import Disbursement from './pages/disbursement/index';
 import OrderDetail from './pages/order/detail';
 import Shops from './pages/shops/index';
+import Roles from './pages/roles/index';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -75,6 +76,7 @@ const App = (props: any) => {
               component={OrderDetail}
             />
             <Route path="/shops/" component={Shops} />
+            <Route path="/roles/" component={Roles} />
             <Route component={NoMatch} />
           </Switch>
         </Content>
