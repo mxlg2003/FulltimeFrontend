@@ -13,7 +13,7 @@ import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import * as Constants from '../../utils/constants';
-import UsersModal from './modal';
+import RolesModal from './modal';
 import useForm from 'rc-form-hooks';
 import { string } from 'prop-types';
 
@@ -119,11 +119,19 @@ const Roles = () => {
 
   const RoleEditModal = (record: any) => {
     const role: any = record.record;
+    // console.log(role.menus);
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
-    const [indeterminate, setIndeterminate] = useState(false);
-    const [checkedList, setCheckedList] = useState([]);
-    const [checkAll, setCheckAll] = useState(false);
+
+    const [checkedList, setCheckedList] = useState(
+      role.menus ? role.menus.split(',') : '',
+    );
+    const [indeterminate, setIndeterminate] = useState(
+      !!checkedList.length && checkedList.length < menuOptions.length,
+    );
+    const [checkAll, setCheckAll] = useState(
+      checkedList.length === menuOptions.length,
+    );
 
     interface iRole {
       name: string;
@@ -143,6 +151,7 @@ const Roles = () => {
       console.log(value);
       value.id = role.id;
       value.users_id = localStorage.getItem('user_id');
+      value.menus = checkedList;
       var e: any = JSON.stringify(value, null, 2);
       console.log(e);
       // setConfirmLoading(true);
@@ -178,18 +187,27 @@ const Roles = () => {
     };
 
     function onChange(checkedList: any) {
-      console.log('checked = ', checkedList);
+      //console.log('checked = ', checkedList);
       setCheckedList(checkedList);
-      // indeterminate: !!checkedList.length && checkedList.length < plainOptions.length,
+      console.log(checkedList);
+      setIndeterminate(
+        !!checkedList.length &&
+          checkedList.length < menuOptions.length,
+      );
       // if checkedList.length === menuOptions.length,
-      console.log(checkedList.length == menuOptions.length);
+      //console.log(checkedList.length == menuOptions.length);
       setCheckAll(checkedList.length == menuOptions.length);
     }
 
     function onCheckAllChange(e: any) {
-      // setCheckedList(checkAll ? menuOptions : []);
-      // indeterminate: false,
-      // checkAll: e.target.checked,
+      console.log(e.target.checked);
+      let dataList: string[] = [];
+      for (var v of menuOptions) {
+        dataList.push(v.value);
+      }
+      setCheckedList(e.target.checked ? dataList : []);
+      setIndeterminate(false);
+      setCheckAll(e.target.checked);
     }
 
     function onBlur() {
@@ -255,23 +273,33 @@ const Roles = () => {
                 })(<Input placeholder="角色描述" />)}
               </Form.Item>
               <Form.Item label="角权权限">
-                <div>
-                  <div style={{ borderBottom: '1px solid #E9E9E9' }}>
-                    <Checkbox
-                      indeterminate={indeterminate}
-                      onChange={onCheckAllChange}
-                      checked={checkAll}
+                {getFieldDecorator('menus', {
+                  rules: [
+                    {
+                      required: true,
+                      message: '必选一项',
+                    },
+                  ],
+                })(
+                  <div>
+                    <div
+                      style={{ borderBottom: '1px solid #E9E9E9' }}
                     >
-                      全选
-                    </Checkbox>
-                  </div>
-                  <br />
-                  <CheckboxGroup
-                    options={menuOptions}
-                    value={checkedList}
-                    onChange={onChange}
-                  />
-                </div>
+                      <Checkbox
+                        indeterminate={indeterminate}
+                        onChange={onCheckAllChange}
+                        checked={checkAll}
+                      >
+                        全选
+                      </Checkbox>
+                    </div>
+                    <CheckboxGroup
+                      options={menuOptions}
+                      value={checkedList}
+                      onChange={onChange}
+                    />
+                  </div>,
+                )}
               </Form.Item>
             </Form>
           </Modal>
@@ -282,7 +310,7 @@ const Roles = () => {
 
   return (
     <Fragment>
-      <UsersModal />
+      <RolesModal />
 
       <Table
         columns={columns}

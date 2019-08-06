@@ -85,3 +85,8 @@
 .m-16 {
   margin: 0 1rem;
 }
+
+.ant-checkbox-group-item {
+  display: block;
+  margin-top: .5rem
+}

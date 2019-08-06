@@ -20,30 +20,44 @@ import useForm from 'rc-form-hooks';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';
 
-const { Option } = Select;
+const CheckboxGroup = Checkbox.Group;
 
-const UsersModal = () => {
-  const [visible, setVisible] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [data, setData] = useState([]);
-  interface iUser {
-    username: string;
-    mobile: string;
-    password: string;
-    shop_id?: number;
+const RolesModal = () => {
+  interface iRole {
+    name: string;
+    menus: string;
     remark?: string;
   }
+  interface iMenuOptions {
+    label: string;
+    value: string;
+  }
+  const [menuOptions, setMenuOptions] = useState<iMenuOptions[]>([]);
 
+  const [visible, setVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [checkedList, setCheckedList] = useState<string[]>([]);
+  const [indeterminate, setIndeterminate] = useState(false);
+  const [checkAll, setCheckAll] = useState(false);
   const { getFieldDecorator, validateFields, resetFields } = useForm<
-    iUser
+    iRole
   >();
 
-  const fetchData = async (url: any) => {
-    const response = await axios
+  const getAllMenu = async (url: any) => {
+    await axios
       .get(url)
       .then(function(response) {
-        console.log(response);
-        setData(response.data);
+        console.log(response.data);
+        let value: iMenuOptions[] = [];
+        for (let x of response.data) {
+          let item: any = x;
+          value.push({
+            label: item.ItemName,
+            value: item.ItemId,
+          });
+        }
+        console.log(value);
+        setMenuOptions(value);
       })
       .catch(function(error) {
         console.log(error);
@@ -51,12 +65,13 @@ const UsersModal = () => {
   };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}shops`);
+    getAllMenu(`${Constants.API_URL}menus`);
   }, []);
 
-  const userPost = (values: object) => {
+  const rolePost = (values: object) => {
     var value: any = values;
     value.users_id = localStorage.getItem('user_id');
+    value.menus = checkedList;
     var e: any = JSON.stringify(value, null, 2);
 
     console.log(e);
@@ -64,17 +79,41 @@ const UsersModal = () => {
     axios.defaults.headers.post['Content-Type'] =
       'application/json; charset=utf-8';
     axios
-      .post(`${Constants.API_URL}users`, e)
+      .post(`${Constants.API_URL}roles`, e)
       .then(function(response) {
         console.log(response);
         setConfirmLoading(false);
         handleReset();
-        message.success('新增系统用户成功', 5);
+        message.success('新增角色用户成功', 5);
       })
       .catch(function(error) {
         console.log(error);
       });
   };
+
+  function onChange(checkedList: any) {
+    //console.log('checked = ', checkedList);
+    setCheckedList(checkedList);
+    console.log(checkedList);
+    setIndeterminate(
+      !!checkedList.length && checkedList.length < menuOptions.length,
+    );
+    // if checkedList.length === menuOptions.length,
+    //console.log(checkedList.length == menuOptions.length);
+    setCheckAll(checkedList.length == menuOptions.length);
+  }
+
+  function onCheckAllChange(e: any) {
+    console.log(e.target.checked);
+    let dataList: string[] = [];
+    for (var v of menuOptions) {
+      dataList.push(v.value);
+    }
+    setCheckedList(e.target.checked ? dataList : []);
+    console.log(checkedList);
+    setIndeterminate(false);
+    setCheckAll(e.target.checked);
+  }
 
   const handleReset = () => {
     setVisible(false);
@@ -85,29 +124,10 @@ const UsersModal = () => {
     e.preventDefault();
     validateFields()
       .then((values: any) => {
-        userPost(values);
+        rolePost(values);
       })
       .catch(console.error);
   };
-
-  function onChange(value: any) {
-    console.log(`selected ${value}`);
-  }
-
-  function onBlur() {
-    console.log('blur');
-  }
-
-  function onFocus() {
-    console.log('focus');
-  }
-
-  function onSearch(val: any) {
-    console.log('search:', val);
-  }
-  const options = (data || []).map((d: any) => (
-    <Option key={d.id}>{d.shop_name}</Option>
-  ));
 
   return (
     <div style={{ margin: '0 0 24px' }}>
@@ -115,10 +135,10 @@ const UsersModal = () => {
         className="ant-btn ant-btn-primary"
         onClick={() => setVisible(true)}
       >
-        新增系统用户
+        新增角色
       </button>
       <Modal
-        title="新增系统用户"
+        title="新增角色"
         visible={visible}
         onOk={handleSubmit}
         confirmLoading={confirmLoading}
@@ -134,60 +154,44 @@ const UsersModal = () => {
           labelCol={{ span: 5 }}
           wrapperCol={{ span: 15 }}
         >
-          <Form.Item label="姓名">
-            {getFieldDecorator('username', {
+          <Form.Item label="角色名">
+            {getFieldDecorator('name', {
               rules: [
                 {
                   required: true,
                   message: '此项必填',
                 },
               ],
-            })(<Input placeholder="姓名" />)}
+            })(<Input placeholder="角色名" />)}
           </Form.Item>
-          <Form.Item label="电话">
-            {getFieldDecorator('mobile', {
+          <Form.Item label="角色描述">
+            {getFieldDecorator('remark', {
               rules: [
                 {
-                  required: true,
-                  message: '此项必填',
+                  required: false,
+                  message: '',
                 },
               ],
-            })(<Input placeholder="电话" />)}
+            })(<Input placeholder="角色描述" />)}
           </Form.Item>
-          <Form.Item label="密码">
-            {getFieldDecorator('password', {
-              rules: [
-                {
-                  required: true,
-                  message: '此项必填',
-                },
-              ],
-            })(<Input placeholder="密码" type="password" />)}
-          </Form.Item>
-          <Form.Item label="所属门店">
-            {getFieldDecorator('shop_id')(
-              <Select
-                showSearch
-                style={{ width: 200 }}
-                placeholder="请选择所属门店"
-                optionFilterProp="children"
+          <Form.Item label="角权权限">
+            <div>
+              <div style={{ borderBottom: '1px solid #E9E9E9' }}>
+                <Checkbox
+                  indeterminate={indeterminate}
+                  onChange={onCheckAllChange}
+                  checked={checkAll}
+                >
+                  全选
+                </Checkbox>
+              </div>
+              <CheckboxGroup
+                options={menuOptions}
+                value={checkedList}
                 onChange={onChange}
-                onFocus={onFocus}
-                onBlur={onBlur}
-                onSearch={onSearch}
-                allowClear={true}
-                // filterOption={(input, option) =>
-                //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                // }
-              >
-                {options}
-              </Select>,
-            )}
-          </Form.Item>
-          <Form.Item label="备注">
-            {getFieldDecorator('remark')(
-              <Input placeholder="备注" />,
-            )}
+              />
+            </div>
+            ,
           </Form.Item>
         </Form>
       </Modal>
@@ -195,4 +199,4 @@ const UsersModal = () => {
   );
 };
 
-export default UsersModal;
+export default RolesModal;

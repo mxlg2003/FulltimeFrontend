@@ -6,12 +6,10 @@ import * as Constants from '../../utils/constants';
 
 const Menu = () => {
   const [sidebarData, setSidebarData] = useState([]);
-  const search = { use_id: localStorage.getItem('user_id') };
-  function getMenu(url: string, search: any) {
+  const search = localStorage.getItem('user_id');
+  function getMenu(url: string) {
     axios
-      .get(url, {
-        params: search,
-      })
+      .get(url)
       .then(function(response) {
         console.log(response.data);
         setSidebarData(response.data);
@@ -22,7 +20,7 @@ const Menu = () => {
   }
 
   useEffect(() => {
-    getMenu(`${Constants.API_URL}menus`, search);
+    getMenu(`${Constants.API_URL}menus/${search}`);
   }, []);
   // [
   //   {

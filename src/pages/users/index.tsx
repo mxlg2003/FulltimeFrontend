@@ -22,32 +22,46 @@ const Users = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [shopData, setShopData] = useState([]);
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url)
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+  const [roleData, setRoleData] = useState([]);
+  // const useDataApi = (url: any) => {
+  //   const fetchData = async () => {
+  //     const response = await axios
+  //       .get(url)
+  //       .then(function(response) {
+  //         console.log(response);
+  //         setLoading(false);
+  //         setData(response.data);
+  //       })
+  //       .catch(function(error) {
+  //         console.log(error);
+  //       });
 
-      // setData(response.data);
-      // setLoading(false);
-    };
+  //     // setData(response.data);
+  //     // setLoading(false);
+  //   };
 
-    useEffect(() => {
-      fetchData();
-    }, []);
+  //   useEffect(() => {
+  //     fetchData();
+  //   }, []);
 
-    return data;
+  //   return data;
+  // };
+
+  const fetchUserData = async (url: any) => {
+    await axios
+      .get(url)
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   };
 
-  const fetchData = async (url: any) => {
-    const response = await axios
+  const fetchShopData = async (url: any) => {
+    await axios
       .get(url)
       .then(function(response) {
         console.log(response);
@@ -57,14 +71,27 @@ const Users = () => {
         console.log(error);
       });
   };
+  const fetchRoleData = async (url: any) => {
+    await axios
+      .get(url)
+      .then(function(response) {
+        console.log(response);
+        setRoleData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}shops`);
+    fetchUserData(`${Constants.API_URL}users`);
+    fetchShopData(`${Constants.API_URL}shops`);
+    fetchRoleData(`${Constants.API_URL}roles`);
   }, []);
 
-  const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}users`),
-  );
+  // const [resumes, setResumes] = useState(
+  //   useDataApi(`${Constants.API_URL}users`),
+  // );
 
   const columns = [
     {
@@ -81,6 +108,10 @@ const Users = () => {
     {
       title: '所属门店',
       dataIndex: 'shop_name',
+    },
+    {
+      title: '角色',
+      dataIndex: 'role_name',
     },
     {
       title: '备注',
@@ -137,6 +168,7 @@ const Users = () => {
       mobile: string;
       password?: string;
       shop_id?: number;
+      role_id?: number;
       remark?: string;
     }
 
@@ -185,26 +217,20 @@ const Users = () => {
         .catch(console.error);
     };
 
-    function onChange(value: any) {
+    function onShopChange(value: any) {
+      console.log(`selected ${value}`);
+    }
+    function onRoleChange(value: any) {
       console.log(`selected ${value}`);
     }
 
-    function onBlur() {
-      console.log('blur');
-    }
-
-    function onFocus() {
-      console.log('focus');
-    }
-
-    function onSearch(val: any) {
+    function onShopSearch(val: any) {
       console.log('search:', val);
     }
-    const options = shopData.map((d: any) => (
-      <Option key={d.id} value={d.id}>
-        {d.shop_name}
-      </Option>
-    ));
+
+    function onRoleSearch(val: any) {
+      console.log('search:', val);
+    }
     return (
       <Fragment>
         <button
@@ -260,6 +286,38 @@ const Users = () => {
                   <Input placeholder="密码" type="password" />,
                 )}
               </Form.Item>
+              <Form.Item label="角色">
+                {getFieldDecorator('role_id', {
+                  rules: [
+                    {
+                      required: true,
+                      message: '此项必填',
+                    },
+                  ],
+                  initialValue: user.role_id,
+                })(
+                  <Select
+                    showSearch
+                    style={{ width: 200 }}
+                    placeholder="请选择角色"
+                    optionFilterProp="children"
+                    onChange={onRoleChange}
+                    onSearch={onRoleSearch}
+                    allowClear={true}
+                    // value={user.shop_id}
+                    // defaultValue={user.shop_id}
+                    // filterOption={(input, option) =>
+                    //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    // }
+                  >
+                    {roleData.map((d: any) => (
+                      <Option key={d.id} value={d.id}>
+                        {d.name}
+                      </Option>
+                    ))}
+                  </Select>,
+                )}
+              </Form.Item>
               <Form.Item label="所属门店">
                 {getFieldDecorator('shop_id', {
                   rules: [
@@ -275,10 +333,8 @@ const Users = () => {
                     style={{ width: 200 }}
                     placeholder="请选择所属门店"
                     optionFilterProp="children"
-                    onChange={onChange}
-                    onFocus={onFocus}
-                    onBlur={onBlur}
-                    onSearch={onSearch}
+                    onChange={onShopChange}
+                    onSearch={onShopSearch}
                     allowClear={true}
                     // value={user.shop_id}
                     // defaultValue={user.shop_id}
@@ -286,7 +342,11 @@ const Users = () => {
                     //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                     // }
                   >
-                    {options}
+                    {shopData.map((d: any) => (
+                      <Option key={d.id} value={d.id}>
+                        {d.shop_name}
+                      </Option>
+                    ))}
                   </Select>,
                 )}
               </Form.Item>
