@@ -32,73 +32,79 @@ const Disbursement = () => {
     issue_date: '',
     end_date: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        params: search,
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
 
-      // setData(response.data);
-      // setLoading(false);
-    };
-
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+    // setData(response.data);
+    // setLoading(false);
   };
-  const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}disbursements`),
-  );
+
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}disbursements`);
+  }, [search]);
 
   const columns = [
     {
       title: '岗位名称',
       dataIndex: 'order_postName',
+      sorter: (a: any, b: any) => a.order_postName - b.order_postName,
       key: 'id',
     },
     {
       title: '企业名称',
       dataIndex: 'enterprise_name',
+      sorter: (a: any, b: any) =>
+        a.enterprise_name - b.enterprise_name,
     },
 
     {
       title: '收款人姓名',
       dataIndex: 'username',
+      sorter: (a: any, b: any) => a.username - b.username,
     },
     {
       title: '收款人手机号',
       dataIndex: 'mobile',
+      sorter: (a: any, b: any) => a.mobile - b.mobile,
     },
     {
       title: '金额',
       dataIndex: 'sum',
+      sorter: (a: any, b: any) => a.sum - b.sum,
     },
     {
       title: '补贴发放日期',
       dataIndex: 'issue_date',
+      sorter: (a: any, b: any) => a.issue_date - b.issue_date,
       render: (text: any, record: any) =>
         moment.unix(record.issue_date).format('YYYY年MM月DD日'),
     },
     {
       title: '补贴计时开始',
       dataIndex: 'start_date',
+      sorter: (a: any, b: any) => a.start_date - b.start_date,
       render: (text: any, record: any) =>
         moment.unix(record.start_date).format('YYYY年MM月DD日'),
     },
     {
       title: '补贴计时结束',
       dataIndex: 'end_date',
+      sorter: (a: any, b: any) => a.end_date - b.end_date,
       render: (text: any, record: any) =>
         moment.unix(record.end_date).format('YYYY年MM月DD日'),
     },
@@ -110,6 +116,7 @@ const Disbursement = () => {
     {
       title: '最后更新时间',
       dataIndex: 'update_time',
+      sorter: (a: any, b: any) => a.update_time - b.update_time,
       render: (text: any, record: any) =>
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
     },

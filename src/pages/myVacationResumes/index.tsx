@@ -18,13 +18,13 @@ import useForm from 'rc-form-hooks';
 const Option = Select.Option;
 moment.locale('zh-cn');
 
-const VacationResumes = () => {
+const MyVacationResumes = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState({
-    // username: '',
-    // mobile: '',
+    username: '',
+    mobile: '',
     sex: '',
     job_intention: '',
     stature: '',
@@ -35,11 +35,10 @@ const VacationResumes = () => {
   const fetchData = async (url: any) => {
     await axios
       .get(url, {
-        params: search,
         headers: {
           Authorization: localStorage.getItem('jwtToken'),
-          // jwt: Constants.USER_ID,
         },
+        params: search,
       })
       .then(function(response) {
         console.log(response);
@@ -49,28 +48,25 @@ const VacationResumes = () => {
       .catch(function(error) {
         console.log(error);
       });
-
-    // setData(response.data);
-    // setLoading(false);
   };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}vacations`);
+    fetchData(`${Constants.API_URL}myVacations`);
   }, [search]);
 
   const columns = [
-    // {
-    //   title: '姓名',
-    //   dataIndex: 'username',
-    //   key: 'id',
-    //   width: 100,
-    // },
+    {
+      title: '姓名',
+      dataIndex: 'username',
+      key: 'id',
+      width: 100,
+    },
 
-    // {
-    //   title: '手机号',
-    //   dataIndex: 'mobile',
-    //   key: 'mobile',
-    // },
+    {
+      title: '手机号',
+      dataIndex: 'mobile',
+      key: 'mobile',
+    },
     {
       title: '性别',
       dataIndex: 'sex',
@@ -99,18 +95,6 @@ const VacationResumes = () => {
         moment.unix(record.birthday).format('YYYY年MM月DD日'),
     },
     {
-      title: '门店',
-      dataIndex: 'shop_name',
-    },
-    {
-      title: '门店所属区域',
-      dataIndex: 'shop_district_fullname',
-    },
-    {
-      title: '门店电话',
-      dataIndex: 'shop_phone',
-    },
-    {
       title: '登记时间',
       dataIndex: 'create_time',
 
@@ -124,24 +108,24 @@ const VacationResumes = () => {
       render: (text: any, record: any) =>
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
     },
-    // {
-    //   title: '业务员id',
-    //   dataIndex: 'yid',
-    // },
-    // {
-    //   title: 'Action',
+    {
+      title: '业务员id',
+      dataIndex: 'yid',
+    },
+    {
+      title: 'Action',
 
-    //   render: (text: any, record: any) => (
-    //     <Popconfirm
-    //       title="确认删除这个简历? "
-    //       onConfirm={() => confirm(record.id)}
-    //       okText="确认"
-    //       cancelText="取消"
-    //     >
-    //       <button className="ant-btn ant-btn-danger">删除</button>
-    //     </Popconfirm>
-    //   ),
-    // },
+      render: (text: any, record: any) => (
+        <Popconfirm
+          title="确认删除这个简历? "
+          onConfirm={() => confirm(record.id)}
+          okText="确认"
+          cancelText="取消"
+        >
+          <button className="ant-btn ant-btn-danger">删除</button>
+        </Popconfirm>
+      ),
+    },
   ];
 
   function confirm(id: any) {
@@ -162,12 +146,12 @@ const VacationResumes = () => {
 
   const ResumesSearch = () => {
     interface iResume {
-      // username?: string;
-      // mobile?: string;
+      username?: string;
+      mobile?: string;
       sex?: string;
       job_intention?: string;
       update_time?: string;
-      // yid?: string;
+      yid?: string;
       stature?: string;
       vacation_type?: string;
     }
@@ -195,8 +179,8 @@ const VacationResumes = () => {
     const handleReset = (e: React.FormEvent) => {
       e.preventDefault();
       setSearch({
-        // username: '',
-        // mobile: '',
+        username: '',
+        mobile: '',
         sex: '',
         job_intention: '',
         stature: '',
@@ -204,39 +188,11 @@ const VacationResumes = () => {
         update_time: '',
         vacation_type: '',
       });
-      // console.log(search);
-      // resumeSearch(search);
-    };
-
-    const resumeSearch = (values?: object) => {
-      var value: any = values;
-      if (value.update_time) {
-        value.update_time = moment(value.update_time).format(
-          'YYYY-MM-DD',
-        );
-        console.log(value.update_time);
-      }
-      axios
-        .get(`${Constants.API_URL}vacations`, {
-          params: value,
-          headers: {
-            Authorization: localStorage.getItem('jwtToken'),
-            // jwt: Constants.USER_ID,
-          },
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
     };
 
     return (
       <Form layout="inline" onSubmit={handleSearch}>
-        {/* <Form.Item label="姓名">
+        <Form.Item label="姓名">
           {getFieldDecorator('username', {
             initialValue: search.username,
           })(<Input placeholder="姓名" style={{ width: 100 }} />)}
@@ -251,7 +207,7 @@ const VacationResumes = () => {
               style={{ width: 150 }}
             />,
           )}
-        </Form.Item> */}
+        </Form.Item>
         <Form.Item label="寒/暑假">
           {getFieldDecorator('vacation_type', {
             initialValue: search.vacation_type,
@@ -299,11 +255,11 @@ const VacationResumes = () => {
           })(<DatePicker />)}
         </Form.Item>
 
-        {/* <Form.Item label="业务员id">
+        <Form.Item label="业务员id">
           {getFieldDecorator('yid', {
             initialValue: search.yid,
           })(<Input placeholder="123456" style={{ width: 100 }} />)}
-        </Form.Item> */}
+        </Form.Item>
         <Form.Item>
           <button className="ant-btn ant-btn-primary">过滤</button>
           <button
@@ -337,4 +293,4 @@ const VacationResumes = () => {
   );
 };
 
-export default VacationResumes;
+export default MyVacationResumes;

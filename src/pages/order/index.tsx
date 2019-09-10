@@ -8,12 +8,13 @@ import {
   Select,
   InputNumber,
   DatePicker,
+  Modal,
 } from 'antd';
+import { Route, Link } from 'react-router-dom';
 import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import * as Constants from '../../utils/constants';
-import OrderModal from './modal';
 import useForm from 'rc-form-hooks';
 
 const Option = Select.Option;
@@ -29,39 +30,36 @@ const Order = () => {
     create_time: '',
     effective_date: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    };
 
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+        params: search,
+      })
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   };
 
-  const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}orders`),
-  );
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}orders`);
+  }, [search]);
 
   const columns = [
     {
       title: '订单编号',
       dataIndex: 'id',
       render: (text: any, record: any) => (
-        <a href={'/order/detail/' + record.id}>{text}</a>
+        <Link to={'/order/detail/' + record.id}>{text}</Link>
       ),
       key: 'id',
     },
@@ -69,7 +67,7 @@ const Order = () => {
       title: '岗位名称',
       dataIndex: 'order_postName',
       render: (text: any, record: any) => (
-        <a href={'/order/detail/' + record.id}>{text}</a>
+        <Link to={'/order/detail/' + record.id}>{text}</Link>
       ),
     },
     {
@@ -215,6 +213,207 @@ const Order = () => {
           </button>
         </Form.Item>
       </Form>
+    );
+  };
+
+  const OrderModal = () => {
+    const [value, setValue] = useState();
+    const [visible, setVisible] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    interface iOrder {
+      enterprise_id: string;
+      order_postName: string;
+      enterprise_name?: string;
+      search_enterprise_name?: string;
+    }
+
+    const {
+      getFieldDecorator,
+
+      validateFields,
+      setFieldsValue,
+      resetFields,
+    } = useForm<iOrder>();
+
+    const orderPost = (values: object) => {
+      var value: any = values;
+      value.users_id = localStorage.getItem('user_id');
+      value.shop_code = localStorage.getItem('shop_code');
+      console.log(value);
+      var e: any = JSON.stringify(value, null, 2);
+
+      console.log(e);
+      // setConfirmLoading(true);
+      axios.defaults.headers.post['Content-Type'] =
+        'application/json; charset=utf-8';
+      axios.defaults.headers.post[
+        'Authorization'
+      ] = localStorage.getItem('jwtToken');
+      axios
+        .post(`${Constants.API_URL}orders`, e)
+        .then(function(response) {
+          console.log(response);
+          setConfirmLoading(false);
+          handleReset();
+          fetchData(`${Constants.API_URL}orders`);
+          message.success('订单保存成功', 5);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    };
+
+    const handleReset = () => {
+      setVisible(false);
+      resetFields();
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      validateFields()
+        .then((values: any) => {
+          console.log(values);
+          orderPost(values);
+        })
+        .catch(console.error);
+    };
+
+    //用关键字搜索企业名称
+    const SearchInput = (props: any) => {
+      const [data, setData] = useState([]);
+
+      const fetchData = (value: string) => {
+        axios
+          .get(
+            `${
+              Constants.API_URL
+            }myEnterprises?enterprise_name=${value}`,
+            {
+              headers: {
+                Authorization: localStorage.getItem('jwtToken'),
+              },
+            },
+          )
+          .then(function(response) {
+            console.log(response);
+            setData(response.data);
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
+      };
+      const handleSearch = (value: string) => {
+        fetchData(value);
+      };
+
+      const handleChange = (value: any) => {
+        console.log(value.label);
+        setFieldsValue({
+          enterprise_id: value.key,
+          enterprise_name: value.label,
+        });
+        // setEnterprise_id(value.key);
+        // setEnterprise_name(value.label);
+        setValue(value.label);
+      };
+
+      const options = data.map((d: any) => (
+        <Option key={d.id}>{d.enterprise_name}</Option>
+      ));
+      return (
+        <Select
+          showSearch
+          value={value}
+          placeholder={props.placeholder}
+          style={props.style}
+          defaultActiveFirstOption={false}
+          showArrow={false}
+          filterOption={false}
+          labelInValue={true}
+          onSearch={handleSearch}
+          onChange={handleChange}
+          notFoundContent={null}
+        >
+          {options}
+        </Select>
+      );
+    };
+
+    return (
+      <div style={{ margin: '0 0 24px' }}>
+        <button
+          className="ant-btn ant-btn-primary"
+          onClick={() => setVisible(true)}
+        >
+          新增订单
+        </button>
+        <Modal
+          title="新增订单"
+          visible={visible}
+          onOk={handleSubmit}
+          confirmLoading={confirmLoading}
+          onCancel={handleReset}
+          okText="提交"
+          cancelText="取消"
+          width="60%"
+        >
+          <Form
+            onSubmit={handleSubmit}
+            onReset={handleReset}
+            layout="horizontal"
+            labelCol={{ span: 5 }}
+            wrapperCol={{ span: 15 }}
+          >
+            <Form.Item label="搜索">
+              {getFieldDecorator('search_enterprise_name')(
+                <SearchInput placeholder="请搜索企业名称中包含的文字" />,
+              )}
+            </Form.Item>
+            <Form.Item label="企业名称">
+              {getFieldDecorator('enterprise_name', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(
+                <Input
+                  placeholder="企业名称"
+                  readOnly
+                  disabled={true}
+                />,
+              )}
+            </Form.Item>
+            <Form.Item label="企业id">
+              {getFieldDecorator('enterprise_id', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(
+                <Input
+                  placeholder="企业id"
+                  readOnly
+                  disabled={true}
+                />,
+              )}
+            </Form.Item>
+            <Form.Item label="岗位名称">
+              {getFieldDecorator('order_postName', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(<Input placeholder="岗位名称" />)}
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     );
   };
 

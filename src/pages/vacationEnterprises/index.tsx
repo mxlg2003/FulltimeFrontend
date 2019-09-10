@@ -5,9 +5,7 @@ import {
   message,
   Button,
   Form,
-  Input,
   Select,
-  InputNumber,
   DatePicker,
   Tag,
 } from 'antd';
@@ -24,73 +22,40 @@ const VacationEnterprises = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState({
-    enterprise_name: '',
-    abbreviation_name: '',
-    username: '',
-    mobile: '',
-    telephone: '',
+    // enterprise_name: '',
+    // abbreviation_name: '',
+    // username: '',
+    // mobile: '',
+    // telephone: '',
     posts: '',
     update_time: '',
     vacation_type: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    };
 
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        params: search,
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   };
 
-  const [enterprises, setEnterprises] = useState(
-    useDataApi(`${Constants.API_URL}vacationEnterprises`),
-  );
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}vacationEnterprises`);
+  }, [search]);
 
   const columns = [
-    {
-      title: '商户全称',
-      dataIndex: 'enterprise_name',
-      key: 'id',
-    },
-
-    {
-      title: '简称',
-      dataIndex: 'abbreviation_name',
-    },
-    {
-      title: '联系人姓名',
-      dataIndex: 'username',
-    },
-    {
-      title: '联系人职位',
-      dataIndex: 'title',
-    },
-    {
-      title: '联系人手机号',
-      dataIndex: 'mobile',
-    },
-    {
-      title: '门店吧台电话',
-      dataIndex: 'telephone',
-    },
-    {
-      title: '门店地址',
-      dataIndex: 'address',
-    },
     {
       title: '招聘岗位',
       dataIndex: 'posts',
@@ -122,7 +87,18 @@ const VacationEnterprises = () => {
           );
         }),
     },
-
+    {
+      title: '门店',
+      dataIndex: 'shop_name',
+    },
+    {
+      title: '门店所属区域',
+      dataIndex: 'shop_district_fullname',
+    },
+    {
+      title: '门店电话',
+      dataIndex: 'shop_phone',
+    },
     {
       title: '登记时间',
       dataIndex: 'create_time',
@@ -137,24 +113,6 @@ const VacationEnterprises = () => {
       sorter: (a: any, b: any) => a.update_time - b.update_time,
       render: (text: any, record: any) =>
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
-    },
-
-    {
-      title: '操作',
-
-      render: (text: any, record: any) => (
-        <Popconfirm
-          title="确认删除? "
-          onConfirm={() => confirm(record.id)}
-          okText="确认"
-          cancelText="取消"
-        >
-          {/* <a href="">删除</a> */}
-          <Button type="danger" size="small">
-            删除
-          </Button>
-        </Popconfirm>
-      ),
     },
   ];
 
@@ -177,11 +135,6 @@ const VacationEnterprises = () => {
 
   const EnterprisesSearch = () => {
     interface iEnterprise {
-      enterprise_name?: string;
-      abbreviation_name?: string;
-      username?: string;
-      mobile?: string;
-      telephone?: string;
       posts?: string;
       update_time?: string;
       vacation_type?: string;
@@ -212,11 +165,11 @@ const VacationEnterprises = () => {
     const handleReset = (e: React.FormEvent) => {
       e.preventDefault();
       setSearch({
-        enterprise_name: '',
-        abbreviation_name: '',
-        username: '',
-        mobile: '',
-        telephone: '',
+        // enterprise_name: '',
+        // abbreviation_name: '',
+        // username: '',
+        // mobile: '',
+        // telephone: '',
         posts: '',
         update_time: '',
         vacation_type: '',
@@ -236,6 +189,10 @@ const VacationEnterprises = () => {
       axios
         .get(`${Constants.API_URL}vacationEnterprises`, {
           params: value,
+          headers: {
+            Authorization: localStorage.getItem('jwtToken'),
+            // jwt: Constants.USER_ID,
+          },
         })
         .then(function(response) {
           console.log(response);
@@ -249,7 +206,7 @@ const VacationEnterprises = () => {
 
     return (
       <Form layout="inline" onSubmit={handleSearch}>
-        <Form.Item label="商户全称">
+        {/* <Form.Item label="商户全称">
           {getFieldDecorator('enterprise_name', {
             initialValue: search.enterprise_name,
           })(<Input placeholder="商户全称" style={{ width: 100 }} />)}
@@ -285,7 +242,7 @@ const VacationEnterprises = () => {
               style={{ width: 150 }}
             />,
           )}
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item label="用工意向">
           {getFieldDecorator('posts', {
             initialValue: search.posts,

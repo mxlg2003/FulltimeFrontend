@@ -29,58 +29,62 @@ const Income = () => {
     effective_date: '',
     income_date: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
 
-      // setData(response.data);
-      // setLoading(false);
-    };
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        params: search,
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
 
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+    // setData(response.data);
+    // setLoading(false);
   };
-  const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}incomes`),
-  );
+
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}incomes`);
+  }, [search]);
 
   const columns = [
     {
       title: '岗位名称',
       dataIndex: 'order_postName',
+      sorter: (a: any, b: any) => a.order_postName - b.order_postName,
       key: 'id',
     },
     {
       title: '企业名称',
       dataIndex: 'enterprise_name',
+      sorter: (a: any, b: any) =>
+        a.enterprise_name - b.enterprise_name,
     },
     {
       title: '金额',
       dataIndex: 'sum',
+      sorter: (a: any, b: any) => a.sum - b.sum,
     },
     {
       title: '缴费时间',
       dataIndex: 'income_date',
+      sorter: (a: any, b: any) => a.income_date - b.income_date,
       render: (text: any, record: any) =>
         moment.unix(record.income_date).format('YYYY年MM月DD日'),
     },
     {
       title: '费用有效日期',
       dataIndex: 'effective_date',
+      sorter: (a: any, b: any) => a.effective_date - b.effective_date,
       render: (text: any, record: any) =>
         moment.unix(record.effective_date).format('YYYY年MM月DD日'),
     },
@@ -92,6 +96,7 @@ const Income = () => {
     {
       title: '最后更新时间',
       dataIndex: 'update_time',
+      sorter: (a: any, b: any) => a.update_time - b.update_time,
       render: (text: any, record: any) =>
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
     },

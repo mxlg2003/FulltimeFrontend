@@ -24,76 +24,50 @@ const Enterprises = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState({
-    enterprise_name: '',
-    abbreviation_name: '',
-    username: '',
-    mobile: '',
-    telephone: '',
+    // enterprise_name: '',
+    // abbreviation_name: '',
+    // username: '',
+    // mobile: '',
+    // telephone: '',
     posts: '',
     cuisines: '',
     update_time: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          // console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    };
-
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        params: search,
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
+      .then(function(response) {
+        // console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   };
 
-  const [enterprises, setEnterprises] = useState(
-    useDataApi(`${Constants.API_URL}enterprises`),
-  );
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}enterprises`);
+  }, [search]);
 
   const columns = [
     {
-      title: '商户全称',
+      title: '商户',
       dataIndex: 'enterprise_name',
       key: 'id',
+      width: 80,
     },
 
     {
-      title: '简称',
-      dataIndex: 'abbreviation_name',
-    },
-    {
-      title: '联系人姓名',
-      dataIndex: 'username',
-    },
-    {
-      title: '联系人职位',
-      dataIndex: 'title',
-    },
-    {
-      title: '联系人手机号',
-      dataIndex: 'mobile',
-    },
-    {
-      title: '门店吧台电话',
-      dataIndex: 'telephone',
-    },
-    {
-      title: '门店地址',
-      dataIndex: 'address',
-    },
-    {
       title: '招聘岗位',
       dataIndex: 'posts',
+      width: 600,
       render: (text: any, record: any) =>
         record.posts.map((e: any) => {
           let color = 'red';
@@ -125,6 +99,7 @@ const Enterprises = () => {
     {
       title: '招聘菜系',
       dataIndex: 'cuisines',
+
       render: (text: any, record: any) =>
         record.cuisines.map((e: any) => {
           let color = 'red';
@@ -137,11 +112,27 @@ const Enterprises = () => {
           );
         }),
     },
+    {
+      title: '门店',
+      dataIndex: 'shop_name',
+      sorter: (a: any, b: any) => a.shop_name - b.shop_name,
+    },
+    {
+      title: '门店所属区域',
+      dataIndex: 'shop_district_fullname',
+      width: 180,
+    },
+    {
+      title: '门店电话',
+      dataIndex: 'shop_phone',
+      sorter: (a: any, b: any) => a.shop_phone - b.shop_phone,
+    },
 
     {
       title: '登记时间',
       dataIndex: 'create_time',
       key: 'create_time',
+      sorter: (a: any, b: any) => a.create_time - b.create_time,
       render: (text: any, record: any) =>
         moment.unix(record.create_time).format('YYYY年MM月DD日'),
     },
@@ -192,64 +183,17 @@ const Enterprises = () => {
 
   const EnterprisesSearch = () => {
     interface iEnterprise {
-      enterprise_name?: string;
-      abbreviation_name?: string;
-      username?: string;
-      mobile?: string;
-      telephone?: string;
+      // enterprise_name?: string;
+      // abbreviation_name?: string;
+      // username?: string;
+      // mobile?: string;
+      // telephone?: string;
       posts?: string;
       cuisines?: string;
       update_time?: string;
     }
-    const job_intentions = [
-      { label: '服务员', value: '01' },
-      { label: '传菜员', value: '02' },
-      { label: '收银员', value: '03' },
-      { label: '果汁员', value: '04' },
-      { label: '保洁', value: '05' },
-      { label: '领班', value: '06' },
-      { label: '经理', value: '07' },
-      { label: '店长', value: '08' },
-      { label: '营运总监', value: '09' },
-      { label: '迎宾员', value: '10' },
-      { label: '灶台', value: '20' },
-      { label: '切配', value: '21' },
-      { label: '打荷', value: '22' },
-      { label: '蒸灶', value: '23' },
-      { label: '冷菜', value: '24' },
-      { label: '学徒', value: '25' },
-      { label: '勤杂', value: '26' },
-      { label: '厨师长', value: '27' },
-      { label: '行政总厨', value: '28' },
-      { label: '采购', value: '40' },
-      { label: '司机', value: '41' },
-      { label: '维修', value: '42' },
-      { label: '后勤部长', value: '43' },
-      { label: '文员', value: '61' },
-      { label: '客服', value: '62' },
-      { label: '人事经理', value: '63' },
-      { label: '办公室主任', value: '64' },
-      { label: '督导', value: '65' },
-      { label: '出纳', value: '66' },
-      { label: '主办会计', value: '67' },
-      { label: '财务经理', value: '68' },
-      { label: 'CFO', value: '69' },
-      { label: '营销人员', value: '80' },
-      { label: '客户经理', value: '81' },
-    ];
-    const cuisineList = [
-      { label: '徽系', value: '01' },
-      { label: '本地系', value: '02' },
-      { label: '川系', value: '03' },
-      { label: '沪杭系', value: '04' },
-      { label: '湘系', value: '05' },
-      { label: '粤系', value: '06' },
-      { label: '淮扬系', value: '07' },
-      { label: '东北系', value: '08' },
-      { label: '火锅系', value: '09' },
-      { label: '赣系', value: '10' },
-      { label: '鲁系', value: '11' },
-    ];
+    const job_intentions = Constants.job_intentions;
+    const cuisineList = Constants.cuisine;
 
     const {
       getFieldDecorator,
@@ -266,11 +210,11 @@ const Enterprises = () => {
     const handleReset = (e: React.FormEvent) => {
       e.preventDefault();
       setSearch({
-        enterprise_name: '',
-        abbreviation_name: '',
-        username: '',
-        mobile: '',
-        telephone: '',
+        // enterprise_name: '',
+        // abbreviation_name: '',
+        // username: '',
+        // mobile: '',
+        // telephone: '',
         posts: '',
         cuisines: '',
         update_time: '',
@@ -303,7 +247,7 @@ const Enterprises = () => {
 
     return (
       <Form layout="inline" onSubmit={handleSearch}>
-        <Form.Item label="商户全称">
+        {/* <Form.Item label="商户全称">
           {getFieldDecorator('enterprise_name', {
             initialValue: search.enterprise_name,
           })(<Input placeholder="商户全称" style={{ width: 100 }} />)}
@@ -339,7 +283,7 @@ const Enterprises = () => {
               style={{ width: 150 }}
             />,
           )}
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item label="用工意向">
           {getFieldDecorator('posts', {
             initialValue: search.posts,

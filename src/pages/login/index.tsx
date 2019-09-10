@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { message, Button, Form, Input, Icon } from 'antd';
+import { message, Button, Form, Input, Icon, Checkbox } from 'antd';
 import axios from 'axios';
 import * as Constants from '../../utils/constants';
 import useForm from 'rc-form-hooks';
@@ -12,6 +12,7 @@ const Login = (props: any) => {
     password: string;
   }
   const { getFieldDecorator, getFieldsValue } = useForm<iLogin>();
+  const [autologin, setAutologin] = useState(0);
   const [loginform, setLoginform] = useState({
     username: '',
     password: '',
@@ -24,22 +25,55 @@ const Login = (props: any) => {
   // 验证是否登录
   const verifyLogin = (token: any) => {
     if (token) {
-      props.history.push('/');
+      console.log(token);
+      axios
+        .get(`${Constants.API_URL}users/verifyJwt`, {
+          headers: {
+            Authorization: localStorage.getItem('jwtToken'),
+            // jwt: Constants.USER_ID,
+          },
+        })
+        .then(res => {
+          console.log(res.data);
+          //储存token到localStorage
+          localStorage.setItem('jwtToken', res.data.token);
+          localStorage.setItem('user_mobile', res.data.mobile);
+          localStorage.setItem('user_id', res.data.id);
+          localStorage.setItem('user_username', res.data.username);
+          localStorage.setItem('shop_id', res.data.shop_id);
+          localStorage.setItem('shop_code', res.data.shop_code);
+          props.history.push('/');
+        })
+        .catch(function(error) {
+          localStorage.clear();
+          alert('密钥过期,请重新登录');
+        });
     }
   };
 
+  // 自动登录
+  function autoLogin() {
+    if (autologin == 0) {
+      setAutologin(1);
+    } else {
+      setAutologin(0);
+    }
+  }
+
   const getToken = (formData: any) => {
+    formData['auto_login'] = autologin;
     console.log(formData);
     axios
       .post(`${Constants.API_URL}users/token`, formData)
       .then(res => {
-        const { token } = res.data;
         console.log(res.data);
-        //储存token到local
-        localStorage.setItem('jwtToken', token);
-        localStorage.setItem('user_mobile', formData.mobile);
+        //储存token到localStorage
+        localStorage.setItem('jwtToken', res.data.token);
+        localStorage.setItem('user_mobile', res.data.mobile);
         localStorage.setItem('user_id', res.data.id);
         localStorage.setItem('user_username', res.data.username);
+        localStorage.setItem('shop_id', res.data.shop_id);
+        localStorage.setItem('shop_code', res.data.shop_code);
         props.history.push('/');
       })
       .catch(function(error) {
@@ -107,6 +141,9 @@ const Login = (props: any) => {
                   id="password"
                 />,
               )}
+            </Form.Item>
+            <Form.Item>
+              <Checkbox onChange={autoLogin}>自动登录</Checkbox>
             </Form.Item>
             <Form.Item>
               <Button type="primary" htmlType="submit" block>

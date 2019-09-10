@@ -6,11 +6,16 @@ import './App.css';
 import Logo from './components/logo';
 import Header from './components/header';
 import NoMatch from './components/error';
-import Menu from './pages/menu';
+import SystemMenu from './pages/menu';
 import Resumes from './pages/resumes/index';
+import MyResumes from './pages/myResumes/index';
+
 import Enterprises from './pages/enterprises/index';
+import MyEnterprises from './pages/myEnterprises/index';
 import VacationEnterprises from './pages/vacationEnterprises/index';
 import VacationResumes from './pages/vacationResumes/index';
+import MyVacationEnterprises from './pages/myVacationEnterprises/index';
+import MyVacationResumes from './pages/myVacationResumes/index';
 import Users from './pages/users/index';
 import Sales from './pages/sales/index';
 import Order from './pages/order/index';
@@ -20,6 +25,8 @@ import Disbursement from './pages/disbursement/index';
 import OrderDetail from './pages/order/detail';
 import Shops from './pages/shops/index';
 import Roles from './pages/roles/index';
+import Qr_Code from './pages/qrCode/index';
+import ShopReport from './pages/shopReport/index';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -43,7 +50,7 @@ const App = (props: any) => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider>
         <Logo />
-        <Menu />
+        <SystemMenu />
       </Sider>
       <Layout>
         <Header style={{ background: '#fff', padding: 0 }} />
@@ -56,14 +63,24 @@ const App = (props: any) => {
         >
           <Switch>
             <Route path="/Resumes/" exact component={Resumes} />
+            <Route path="/myResumes/" exact component={MyResumes} />
             <Route path="/enterprises/" component={Enterprises} />
+            <Route path="/myEnterprises/" component={MyEnterprises} />
             <Route
-              path="/VacationResumes/"
+              path="/vacationResumes/"
               component={VacationResumes}
+            />
+            <Route
+              path="/myVacationResumes/"
+              component={MyVacationResumes}
             />
             <Route
               path="/vacationEnterprises/"
               component={VacationEnterprises}
+            />
+            <Route
+              path="/myVacationEnterprises/"
+              component={MyVacationEnterprises}
             />
             <Route path="/users/" component={Users} />
             <Route path="/orders/" component={Order} />
@@ -77,6 +94,8 @@ const App = (props: any) => {
             />
             <Route path="/shops/" component={Shops} />
             <Route path="/roles/" component={Roles} />
+            <Route path="/qrcode/" component={Qr_Code} />
+            <Route path="/shopReport/" component={ShopReport} />
             <Route component={NoMatch} />
           </Switch>
         </Content>

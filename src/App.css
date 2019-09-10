@@ -1,5 +1,5 @@
 @import './antd.css';
-
+/* 
 .ant-menu {
   padding: 16px 0px;
   width: 100%;
@@ -26,7 +26,7 @@
 .ant-menu a.active {
   background-color: #1890ff;
   color: #fff;
-}
+} */
 
 .logo {
   height: 64px;

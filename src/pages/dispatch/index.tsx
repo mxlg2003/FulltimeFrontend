@@ -30,64 +30,69 @@ const Dispatch = () => {
     start_date: '',
     end_date: '',
   });
-  const useDataApi = (url: any) => {
-    const fetchData = async () => {
-      const response = await axios
-        .get(url, {
-          params: search,
-        })
-        .then(function(response) {
-          console.log(response);
-          setLoading(false);
-          setData(response.data);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+  const fetchData = async (url: any) => {
+    await axios
+      .get(url, {
+        params: search,
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
+      .then(function(response) {
+        console.log(response);
+        setLoading(false);
+        setData(response.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
 
-      // setData(response.data);
-      // setLoading(false);
-    };
-
-    useEffect(() => {
-      fetchData();
-    }, [search]);
-
-    return data;
+    // setData(response.data);
+    // setLoading(false);
   };
-  const [resumes, setResumes] = useState(
-    useDataApi(`${Constants.API_URL}dispatchs`),
-  );
+
+  useEffect(() => {
+    fetchData(`${Constants.API_URL}dispatchs`);
+  }, [search]);
 
   const columns = [
     {
       title: '姓名',
       dataIndex: 'resume_username',
+      sorter: (a: any, b: any) =>
+        a.resume_username - b.resume_username,
       key: 'id',
     },
 
     {
       title: '手机号',
       dataIndex: 'resume_mobile',
+      sorter: (a: any, b: any) => a.resume_mobile - b.resume_mobile,
     },
     {
       title: '企业名称',
       dataIndex: 'enterprise_name',
+      sorter: (a: any, b: any) =>
+        a.enterprise_name - b.enterprise_name,
     },
     {
       title: '岗位名称',
       dataIndex: 'order_postName',
+      sorter: (a: any, b: any) => a.order_postName - b.order_postName,
     },
 
     {
       title: '派遣开始日期',
       dataIndex: 'start_date',
+      sorter: (a: any, b: any) => a.start_date - b.start_date,
       render: (text: any, record: any) =>
         moment.unix(record.start_date).format('YYYY年MM月DD日'),
     },
     {
       title: '派遣结束日期',
       dataIndex: 'end_date',
+      sorter: (a: any, b: any) => a.end_date - b.end_date,
       render: (text: any, record: any) =>
         moment.unix(record.end_date).format('YYYY年MM月DD日'),
     },
@@ -99,6 +104,7 @@ const Dispatch = () => {
     {
       title: '最后更新时间',
       dataIndex: 'update_time',
+      sorter: (a: any, b: any) => a.update_time - b.update_time,
       render: (text: any, record: any) =>
         moment.unix(record.update_time).format('YYYY年MM月DD日'),
     },

@@ -12,10 +12,11 @@ import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 import * as Constants from '../../utils/constants';
-import UsersModal from './modal';
+// import UsersModal from './modal';
 import useForm from 'rc-form-hooks';
 
 const Option = Select.Option;
+const checkPhoneNub = Constants.CheckPhoneNub;
 moment.locale('zh-cn');
 
 const Users = () => {
@@ -23,33 +24,15 @@ const Users = () => {
   const [loading, setLoading] = useState(true);
   const [shopData, setShopData] = useState([]);
   const [roleData, setRoleData] = useState([]);
-  // const useDataApi = (url: any) => {
-  //   const fetchData = async () => {
-  //     const response = await axios
-  //       .get(url)
-  //       .then(function(response) {
-  //         console.log(response);
-  //         setLoading(false);
-  //         setData(response.data);
-  //       })
-  //       .catch(function(error) {
-  //         console.log(error);
-  //       });
-
-  //     // setData(response.data);
-  //     // setLoading(false);
-  //   };
-
-  //   useEffect(() => {
-  //     fetchData();
-  //   }, []);
-
-  //   return data;
-  // };
 
   const fetchUserData = async (url: any) => {
     await axios
-      .get(url)
+      .get(url, {
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+        },
+      })
       .then(function(response) {
         console.log(response);
         setLoading(false);
@@ -88,10 +71,6 @@ const Users = () => {
     fetchShopData(`${Constants.API_URL}shops`);
     fetchRoleData(`${Constants.API_URL}roles`);
   }, []);
-
-  // const [resumes, setResumes] = useState(
-  //   useDataApi(`${Constants.API_URL}users`),
-  // );
 
   const columns = [
     {
@@ -194,6 +173,8 @@ const Users = () => {
           console.log(response);
           setConfirmLoading(false);
           handleReset();
+          fetchUserData(`${Constants.API_URL}users`);
+
           message.success('修改系统用户信息成功', 5);
         })
         .catch(function(error) {
@@ -270,7 +251,7 @@ const Users = () => {
                   ],
                 })(<Input placeholder="姓名" />)}
               </Form.Item>
-              <Form.Item label="电话">
+              <Form.Item label="手机号">
                 {getFieldDecorator('mobile', {
                   initialValue: user.mobile,
                   rules: [
@@ -278,8 +259,9 @@ const Users = () => {
                       required: true,
                       message: '此项必填',
                     },
+                    { validator: checkPhoneNub },
                   ],
-                })(<Input placeholder="电话" />)}
+                })(<Input placeholder="手机号" />)}
               </Form.Item>
               <Form.Item label="密码">
                 {getFieldDecorator('password')(
@@ -365,6 +347,197 @@ const Users = () => {
           </Modal>
         )}
       </Fragment>
+    );
+  };
+
+  const UsersModal = () => {
+    const [visible, setVisible] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    interface iUser {
+      username: string;
+      mobile: string;
+      password: string;
+      shop_id?: number;
+      role_id?: number;
+      remark?: string;
+    }
+
+    const {
+      getFieldDecorator,
+      validateFields,
+      resetFields,
+    } = useForm<iUser>();
+
+    const userPost = (values: object) => {
+      var value: any = values;
+      value.users_id = localStorage.getItem('user_id');
+      var e: any = JSON.stringify(value, null, 2);
+
+      console.log(e);
+      // setConfirmLoading(true);
+      axios.defaults.headers.post['Content-Type'] =
+        'application/json; charset=utf-8';
+      axios
+        .post(`${Constants.API_URL}users`, e)
+        .then(function(response) {
+          console.log(response);
+          setConfirmLoading(false);
+          handleReset();
+          fetchUserData(`${Constants.API_URL}users`);
+          message.success('新增系统用户成功', 5);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    };
+
+    const handleReset = () => {
+      setVisible(false);
+      resetFields();
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      validateFields()
+        .then((values: any) => {
+          userPost(values);
+        })
+        .catch(console.error);
+    };
+
+    function onChange(value: any) {
+      console.log(`selected ${value}`);
+    }
+
+    function onBlur() {
+      console.log('blur');
+    }
+
+    function onFocus() {
+      console.log('focus');
+    }
+
+    function onSearch(val: any) {
+      console.log('search:', val);
+    }
+
+    return (
+      <div style={{ margin: '0 0 24px' }}>
+        <button
+          className="ant-btn ant-btn-primary"
+          onClick={() => setVisible(true)}
+        >
+          新增系统用户
+        </button>
+        <Modal
+          title="新增系统用户"
+          visible={visible}
+          onOk={handleSubmit}
+          confirmLoading={confirmLoading}
+          onCancel={handleReset}
+          okText="提交"
+          cancelText="取消"
+          width="60%"
+        >
+          <Form
+            onSubmit={handleSubmit}
+            onReset={handleReset}
+            layout="horizontal"
+            labelCol={{ span: 5 }}
+            wrapperCol={{ span: 15 }}
+          >
+            <Form.Item label="姓名">
+              {getFieldDecorator('username', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(<Input placeholder="姓名" />)}
+            </Form.Item>
+            <Form.Item label="手机号">
+              {getFieldDecorator('mobile', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                  { validator: checkPhoneNub },
+                ],
+              })(<Input placeholder="手机号" />)}
+            </Form.Item>
+            <Form.Item label="密码">
+              {getFieldDecorator('password', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(<Input placeholder="密码" type="password" />)}
+            </Form.Item>
+            <Form.Item label="角色">
+              {getFieldDecorator('role_id', {
+                rules: [
+                  {
+                    required: true,
+                    message: '此项必填',
+                  },
+                ],
+              })(
+                <Select
+                  showSearch
+                  style={{ width: 200 }}
+                  placeholder="请选择角色"
+                  optionFilterProp="children"
+                  allowClear={true}
+                  // value={user.shop_id}
+                  // defaultValue={user.shop_id}
+                  // filterOption={(input, option) =>
+                  //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  // }
+                >
+                  {roleData.map((d: any) => (
+                    <Option key={d.id} value={d.id}>
+                      {d.name}
+                    </Option>
+                  ))}
+                </Select>,
+              )}
+            </Form.Item>
+            <Form.Item label="所属门店">
+              {getFieldDecorator('shop_id')(
+                <Select
+                  showSearch
+                  style={{ width: 200 }}
+                  placeholder="请选择所属门店"
+                  optionFilterProp="children"
+                  onChange={onChange}
+                  onFocus={onFocus}
+                  onBlur={onBlur}
+                  onSearch={onSearch}
+                  allowClear={true}
+                  // filterOption={(input, option) =>
+                  //   option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  // }
+                >
+                  {shopData.map((d: any) => (
+                    <Option key={d.id} value={d.id}>
+                      {d.shop_name}
+                    </Option>
+                  ))}
+                </Select>,
+              )}
+            </Form.Item>
+            <Form.Item label="备注">
+              {getFieldDecorator('remark')(
+                <Input placeholder="备注" />,
+              )}
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     );
   };
 
