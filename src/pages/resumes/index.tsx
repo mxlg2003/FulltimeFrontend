@@ -82,6 +82,10 @@ const Resumes = () => {
       dataIndex: 'service_year',
     },
     {
+      title: '工作经历',
+      dataIndex: 'work_experience',
+    },
+    {
       title: '身高',
       dataIndex: 'stature',
     },

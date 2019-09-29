@@ -180,14 +180,13 @@ const Shops = () => {
       axios.defaults.headers.post['Content-Type'] =
         'application/json; charset=utf-8';
       axios
-        .post(`${Constants.API_URL}shops/${value.id}`, e)
+        .post(`${Constants.API_URL}shop/${value.id}`, e)
         .then(function(response) {
-          console.log(response.data.code);
-          if ((response.data.code = 10010)) {
-            message.warning(response.data.massage, 5);
-          } else {
+          if (response.data.code == 10010) {
             setConfirmLoading(false);
             handleReset();
+            message.warning(response.data.massage, 5);
+          } else {
             fetchData(`${Constants.API_URL}shops`);
             message.success('修改门店信息成功', 5);
           }

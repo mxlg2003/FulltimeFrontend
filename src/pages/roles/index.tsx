@@ -7,6 +7,7 @@ import {
   Input,
   Modal,
   Checkbox,
+  Tree,
 } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
@@ -16,6 +17,7 @@ import * as Constants from '../../utils/constants';
 import useForm from 'rc-form-hooks';
 
 const CheckboxGroup = Checkbox.Group;
+const { TreeNode } = Tree;
 
 moment.locale('zh-cn');
 
@@ -27,6 +29,9 @@ const Roles = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOptions, setMenuOptions] = useState<iMenuOptions[]>([]);
+
+  const [treeData, setTreeData] = useState([]);
+
   const fetchData = async (url: any) => {
     await axios
       .get(url, {
@@ -62,6 +67,8 @@ const Roles = () => {
         }
         console.log(value);
         setMenuOptions(value);
+        console.log(menuToTree(response.data));
+        setTreeData(menuToTree(response.data));
       })
       .catch(function(error) {
         console.log(error);
@@ -120,7 +127,7 @@ const Roles = () => {
       })
       .then(function(response) {
         console.log(response.data.code);
-        if ((response.data.code = 10010)) {
+        if (response.data.code == 10010) {
           message.warning(response.data.massage, 5);
         } else {
           fetchData(`${Constants.API_URL}roles`);
@@ -137,16 +144,10 @@ const Roles = () => {
     // console.log(role.menus);
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
-
-    const [checkedList, setCheckedList] = useState(
-      role.menus ? role.menus.split(',') : '',
+    const [menuOptions, setMenuOptions] = useState<iMenuOptions[]>(
+      [],
     );
-    const [indeterminate, setIndeterminate] = useState(
-      !!checkedList.length && checkedList.length < menuOptions.length,
-    );
-    const [checkAll, setCheckAll] = useState(
-      checkedList.length === menuOptions.length,
-    );
+    const [checkedList, setCheckedList] = useState<string[]>([]);
 
     interface iRole {
       name: string;
@@ -160,12 +161,21 @@ const Roles = () => {
       resetFields,
     } = useForm<iRole>();
 
-    const rolePost = (values: object) => {
+    const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+    const [checkedKeys, setCheckedKeys] = useState<string[]>(
+      role.menus.split(','),
+    );
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [autoExpandParent, setAutoExpandParent] = useState<boolean>(
+      true,
+    );
+
+    const roleEditPost = (values: object) => {
       var value: any = values;
       console.log(value);
       value.id = role.id;
       value.users_id = localStorage.getItem('user_id');
-      value.menus = checkedList;
+      value.menus = checkedKeys;
       var e: any = JSON.stringify(value, null, 2);
       console.log(e);
       // setConfirmLoading(true);
@@ -201,46 +211,22 @@ const Roles = () => {
         .then((values: any) => {
           console.log(values);
           //var values: any = getFieldsValue();
-          rolePost(values);
+          roleEditPost(values);
         })
         .catch(console.error);
     };
 
-    function onChange(checkedList: any) {
-      //console.log('checked = ', checkedList);
-      setCheckedList(checkedList);
-      console.log(checkedList);
-      setIndeterminate(
-        !!checkedList.length &&
-          checkedList.length < menuOptions.length,
-      );
-      // if checkedList.length === menuOptions.length,
-      //console.log(checkedList.length == menuOptions.length);
-      setCheckAll(checkedList.length == menuOptions.length);
-    }
-
-    function onCheckAllChange(e: any) {
-      console.log(e.target.checked);
-      let dataList: string[] = [];
-      for (var v of menuOptions) {
-        dataList.push(v.value);
-      }
-      setCheckedList(e.target.checked ? dataList : []);
-      setIndeterminate(false);
-      setCheckAll(e.target.checked);
-    }
-
-    function onBlur() {
-      console.log('blur');
-    }
-
-    function onFocus() {
-      console.log('focus');
-    }
-
-    function onSearch(val: any) {
-      console.log('search:', val);
-    }
+    const onExpand = (expandedKeys: any) => {
+      console.log('onExpand', expandedKeys);
+      // if not set autoExpandParent to false, if children expanded, parent can not collapse.
+      // or, you can remove all expanded children keys.
+      setExpandedKeys(expandedKeys);
+      setAutoExpandParent(false);
+    };
+    const onCheck = (checkedKeys: any) => {
+      console.log('onCheck', checkedKeys);
+      setCheckedKeys(checkedKeys);
+    };
 
     return (
       <Fragment>
@@ -292,27 +278,29 @@ const Roles = () => {
                   ],
                 })(<Input placeholder="角色描述" />)}
               </Form.Item>
-              <Form.Item label="角权权限">
-                {getFieldDecorator('menus')(
-                  <div>
-                    <div
-                      style={{ borderBottom: '1px solid #E9E9E9' }}
-                    >
-                      <Checkbox
-                        indeterminate={indeterminate}
-                        onChange={onCheckAllChange}
-                        checked={checkAll}
-                      >
-                        全选
-                      </Checkbox>
-                    </div>
-                    <CheckboxGroup
-                      options={menuOptions}
-                      value={checkedList}
-                      onChange={onChange}
-                    />
-                  </div>,
-                )}
+              <Form.Item label="角色权限">
+                <div>
+                  {/* <div style={{ borderBottom: '1px solid #E9E9E9' }}>
+                  <Checkbox
+                    indeterminate={indeterminate}
+                    onChange={onCheckAllChange}
+                    checked={checkAll}
+                  >
+                    全选
+                  </Checkbox>
+                </div> */}
+                  <Tree
+                    checkable
+                    onExpand={onExpand}
+                    expandedKeys={expandedKeys}
+                    autoExpandParent={autoExpandParent}
+                    onCheck={onCheck}
+                    checkedKeys={checkedKeys}
+                    // onSelect={onSelect}
+                    selectedKeys={selectedKeys}
+                    treeData={treeData}
+                  />
+                </div>
               </Form.Item>
             </Form>
           </Modal>
@@ -320,6 +308,27 @@ const Roles = () => {
       </Fragment>
     );
   };
+
+  function menuToTree(menu: any) {
+    let value: any = [];
+    for (let x of menu) {
+      let item: any = x;
+
+      if (item.SubItems) {
+        value.push({
+          title: item.ItemName,
+          key: item.ItemId,
+          children: menuToTree(item.SubItems),
+        });
+      } else {
+        value.push({
+          title: item.ItemName,
+          key: item.ItemId,
+        });
+      }
+    }
+    return value;
+  }
 
   const RolesModal = () => {
     interface iRole {
@@ -345,6 +354,12 @@ const Roles = () => {
       validateFields,
       resetFields,
     } = useForm<iRole>();
+    const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+    const [checkedKeys, setCheckedKeys] = useState<string[]>([]);
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [autoExpandParent, setAutoExpandParent] = useState<boolean>(
+      true,
+    );
 
     const getAllMenu = async (url: any) => {
       await axios
@@ -374,7 +389,7 @@ const Roles = () => {
     const rolePost = (values: object) => {
       var value: any = values;
       value.users_id = localStorage.getItem('user_id');
-      value.menus = checkedList;
+      value.menus = checkedKeys;
       var e: any = JSON.stringify(value, null, 2);
 
       console.log(e);
@@ -392,7 +407,7 @@ const Roles = () => {
             message.warning(response.data.massage, 5);
           } else {
             fetchData(`${Constants.API_URL}roles`);
-            message.success('新增角色用户成功', 5);
+            message.success(response.data.massage, 5);
           }
         })
         .catch(function(error) {
@@ -400,18 +415,36 @@ const Roles = () => {
         });
     };
 
-    function onChange(checkedList: any) {
-      //console.log('checked = ', checkedList);
-      setCheckedList(checkedList);
-      console.log(checkedList);
-      setIndeterminate(
-        !!checkedList.length &&
-          checkedList.length < menuOptions.length,
-      );
-      // if checkedList.length === menuOptions.length,
-      //console.log(checkedList.length == menuOptions.length);
-      setCheckAll(checkedList.length == menuOptions.length);
-    }
+    // function onChange(checkedList: any) {
+    //   //console.log('checked = ', checkedList);
+    //   setCheckedList(checkedList);
+    //   console.log(checkedList);
+    //   setIndeterminate(
+    //     !!checkedList.length &&
+    //       checkedList.length < menuOptions.length,
+    //   );
+    //   // if checkedList.length === menuOptions.length,
+    //   //console.log(checkedList.length == menuOptions.length);
+    //   setCheckAll(checkedList.length == menuOptions.length);
+    // }
+
+    const onExpand = (expandedKeys: any) => {
+      console.log('onExpand', expandedKeys);
+      // if not set autoExpandParent to false, if children expanded, parent can not collapse.
+      // or, you can remove all expanded children keys.
+      setExpandedKeys(expandedKeys);
+      setAutoExpandParent(false);
+    };
+
+    const onCheck = (checkedKeys: any) => {
+      console.log('onCheck', checkedKeys);
+      setCheckedKeys(checkedKeys);
+    };
+
+    const onSelect = (selectedKeys: any, info: any) => {
+      console.log('onSelect', info);
+      setSelectedKeys(selectedKeys);
+    };
 
     function onCheckAllChange(e: any) {
       console.log(e.target.checked);
@@ -484,9 +517,9 @@ const Roles = () => {
                 ],
               })(<Input placeholder="角色描述" />)}
             </Form.Item>
-            <Form.Item label="角权权限">
+            <Form.Item label="角色权限">
               <div>
-                <div style={{ borderBottom: '1px solid #E9E9E9' }}>
+                {/* <div style={{ borderBottom: '1px solid #E9E9E9' }}>
                   <Checkbox
                     indeterminate={indeterminate}
                     onChange={onCheckAllChange}
@@ -494,14 +527,19 @@ const Roles = () => {
                   >
                     全选
                   </Checkbox>
-                </div>
-                <CheckboxGroup
-                  options={menuOptions}
-                  value={checkedList}
-                  onChange={onChange}
+                </div> */}
+                <Tree
+                  checkable
+                  onExpand={onExpand}
+                  expandedKeys={expandedKeys}
+                  autoExpandParent={autoExpandParent}
+                  onCheck={onCheck}
+                  checkedKeys={checkedKeys}
+                  // onSelect={onSelect}
+                  selectedKeys={selectedKeys}
+                  treeData={treeData}
                 />
               </div>
-              ,
             </Form.Item>
           </Form>
         </Modal>

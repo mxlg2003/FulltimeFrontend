@@ -107,6 +107,10 @@ const MyResumes = () => {
       sorter: (a: any, b: any) => a.service_year - b.service_year,
     },
     {
+      title: '工作经历',
+      dataIndex: 'work_experience',
+    },
+    {
       title: '身高',
       dataIndex: 'stature',
       sorter: (a: any, b: any) => a.stature - b.stature,

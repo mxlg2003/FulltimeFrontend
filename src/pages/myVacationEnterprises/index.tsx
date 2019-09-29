@@ -19,6 +19,7 @@ import * as Constants from '../../utils/constants';
 import useForm from 'rc-form-hooks';
 import FormItem from 'antd/lib/form/FormItem';
 // import ResumesModal from './modal_antd';
+const { TextArea } = Input;
 const Option = Select.Option;
 moment.locale('zh-cn');
 
@@ -91,6 +92,10 @@ const MyVacationEnterprises = () => {
     {
       title: '门店地址',
       dataIndex: 'address',
+    },
+    {
+      title: '福利待遇',
+      dataIndex: 'welfare',
     },
     {
       title: '招聘岗位',
@@ -329,7 +334,7 @@ const MyVacationEnterprises = () => {
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
 
-    interface iResumes {
+    interface iEnterprises {
       id: number;
       address: string;
       enterprise_name: string;
@@ -339,6 +344,7 @@ const MyVacationEnterprises = () => {
       title: string;
       telephone: string;
       vacation_type: number;
+      welfare?: string;
       [propName: string]: any;
     }
     const {
@@ -346,7 +352,7 @@ const MyVacationEnterprises = () => {
       validateFields,
       resetFields,
       getFieldsValue,
-    } = useForm<iResumes>();
+    } = useForm<iEnterprises>();
 
     const handleReset = () => {
       setVisible(false);
@@ -373,8 +379,8 @@ const MyVacationEnterprises = () => {
           console.log(response);
           setConfirmLoading(false);
           handleReset();
-          fetchData(`${Constants.API_URL}myEnterprises`);
-          message.success('简历修改成功', 5);
+          fetchData(`${Constants.API_URL}myVacationEnterprises`);
+          message.success('修改成功', 5);
         })
         .catch(function(error) {
           console.log(error);
@@ -508,6 +514,11 @@ const MyVacationEnterprises = () => {
                   },
                 ],
               })(<Input placeholder="门店地址" />)}
+            </Form.Item>
+            <Form.Item label="福利待遇">
+              {getFieldDecorator('welfare', {
+                initialValue: value.welfare,
+              })(<TextArea placeholder="" autosize />)}
             </Form.Item>
           </Form>
         </Modal>

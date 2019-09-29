@@ -21,6 +21,7 @@ import { string } from 'prop-types';
 import FormItem from 'antd/lib/form/FormItem';
 // import ResumesModal from './modal_antd';
 const Option = Select.Option;
+const { TextArea } = Input;
 moment.locale('zh-cn');
 
 const MyEnterprises = () => {
@@ -79,18 +80,19 @@ const MyEnterprises = () => {
     },
     {
       title: '联系人姓名',
-      dataIndex: 'username',
-      sorter: (a: any, b: any) => a.username - b.username,
-    },
-    {
-      title: '联系人职位',
-      dataIndex: 'title',
-      sorter: (a: any, b: any) => a.title - b.title,
-    },
-    {
-      title: '联系人手机号',
-      dataIndex: 'mobile',
-      sorter: (a: any, b: any) => a.mobile - b.mobile,
+      // dataIndex: 'username',
+      width: 160,
+      render: (text: any, record: any) => {
+        return (
+          <div>
+            姓名: {record.username}
+            <br />
+            职位: {record.title}
+            <br />
+            手机: {record.mobile}
+          </div>
+        );
+      },
     },
     {
       title: '门店吧台电话',
@@ -101,6 +103,10 @@ const MyEnterprises = () => {
       title: '门店地址',
       dataIndex: 'address',
       sorter: (a: any, b: any) => a.address - b.address,
+    },
+    {
+      title: '福利待遇',
+      dataIndex: 'welfare',
     },
     {
       title: '招聘岗位',
@@ -362,7 +368,7 @@ const MyEnterprises = () => {
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
 
-    interface iResumes {
+    interface iEnterprises {
       id: number;
       address: string;
       enterprise_name: string;
@@ -371,6 +377,7 @@ const MyEnterprises = () => {
       username: string;
       title: string;
       telephone: string;
+      welfare?: string;
       [propName: string]: any;
     }
     const {
@@ -378,7 +385,7 @@ const MyEnterprises = () => {
       validateFields,
       resetFields,
       getFieldsValue,
-    } = useForm<iResumes>();
+    } = useForm<iEnterprises>();
 
     const handleReset = () => {
       setVisible(false);
@@ -528,6 +535,11 @@ const MyEnterprises = () => {
                   },
                 ],
               })(<Input placeholder="门店地址" />)}
+            </Form.Item>
+            <Form.Item label="福利待遇">
+              {getFieldDecorator('welfare', {
+                initialValue: value.welfare,
+              })(<TextArea placeholder="" autosize />)}
             </Form.Item>
           </Form>
         </Modal>
