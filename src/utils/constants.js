@@ -1,4 +1,10 @@
 export const API_URL = 'http://127.0.0.1:5000/api/';
+export const QINIU_SERVER = 'http://upload-z2.qiniup.com/'; // 根据存储区域修改上传域名
+export const BASE_QINIU_URL = 'http://pzk49r7bd.bkt.clouddn.com/'; // 空间 bucket 绑定的域名
+export const THUMBNAIL_URL =
+  '?imageView2/1/w/50/h/50/format/jpg/q/75|imageslim'; // 缩略图后缀
+export const SMALL_IMG_URL =
+  '?imageMogr2/thumbnail/640x640/format/webp/blur/1x0/quality/75|imageslim'; // 小图后缀
 // export const API_URL = 'http://212.64.68.191:5000/api/';
 
 export const USER_ID = localStorage.getItem('user_id');

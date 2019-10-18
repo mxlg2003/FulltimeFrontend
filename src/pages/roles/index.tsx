@@ -415,19 +415,6 @@ const Roles = () => {
         });
     };
 
-    // function onChange(checkedList: any) {
-    //   //console.log('checked = ', checkedList);
-    //   setCheckedList(checkedList);
-    //   console.log(checkedList);
-    //   setIndeterminate(
-    //     !!checkedList.length &&
-    //       checkedList.length < menuOptions.length,
-    //   );
-    //   // if checkedList.length === menuOptions.length,
-    //   //console.log(checkedList.length == menuOptions.length);
-    //   setCheckAll(checkedList.length == menuOptions.length);
-    // }
-
     const onExpand = (expandedKeys: any) => {
       console.log('onExpand', expandedKeys);
       // if not set autoExpandParent to false, if children expanded, parent can not collapse.

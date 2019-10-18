@@ -25,8 +25,7 @@ const SystemMenu = () => {
   }
 
   useEffect(() => {
-    getMenu(`${Constants.API_URL}menus`);
-    // setSidebarData(Constants.menu_test);
+    getMenu(`${Constants.API_URL}menu`);
   }, []);
 
   return (

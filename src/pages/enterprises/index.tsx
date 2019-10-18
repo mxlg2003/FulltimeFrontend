@@ -66,7 +66,7 @@ const Enterprises = () => {
 
     {
       title: '招聘岗位',
-      dataIndex: 'posts',
+      dataIndex: 'posts,content',
       width: 600,
       render: (text: any, record: any) =>
         record.posts.map((e: any) => {
@@ -111,6 +111,10 @@ const Enterprises = () => {
             </Tag>
           );
         }),
+    },
+    {
+      title: '招聘内容',
+      dataIndex: 'content',
     },
     {
       title: '门店',

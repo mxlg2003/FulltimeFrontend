@@ -90,3 +90,7 @@
   display: block;
   margin-top: .5rem
 }
+
+.ant-form-item {
+  margin-bottom: 0;
+}

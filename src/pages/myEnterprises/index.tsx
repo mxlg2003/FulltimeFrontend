@@ -110,7 +110,7 @@ const MyEnterprises = () => {
     },
     {
       title: '招聘岗位',
-      dataIndex: 'posts',
+      // dataIndex: 'posts',
       render: (text: any, record: any) =>
         record.posts.map((e: any) => {
           let color = 'red';
@@ -154,7 +154,10 @@ const MyEnterprises = () => {
           );
         }),
     },
-
+    {
+      title: '招聘内容',
+      dataIndex: 'content',
+    },
     {
       title: '登记时间',
       dataIndex: 'create_time',

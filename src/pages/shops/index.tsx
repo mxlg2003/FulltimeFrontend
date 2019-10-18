@@ -122,6 +122,7 @@ const Shops = () => {
       });
   };
 
+  // 门店修改组件
   const ShopEditModal = (record: any) => {
     const shop: any = record.record;
     const [visible, setVisible] = useState(false);
@@ -220,7 +221,6 @@ const Shops = () => {
           修改
         </button>
         <Modal
-          // title="修改系统用户信息"
           title={shop.username}
           visible={visible}
           onOk={handleSubmit}
