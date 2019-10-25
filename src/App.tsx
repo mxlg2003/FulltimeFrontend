@@ -30,6 +30,7 @@ import ShopReport from './pages/shopReport/index';
 import InformationCategory from './pages/informationCategory/index';
 import Informations from './pages/informations/index';
 import InformationDetail from './pages/informations/detail';
+import UserInformations from './pages/informations/user_informations';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -104,6 +105,10 @@ const App = (props: any) => {
               component={InformationCategory}
             />
             <Route path="/informations/" component={Informations} />
+            <Route
+              path="/userInformations/"
+              component={UserInformations}
+            />
             <Route
               path="/information/detail"
               component={InformationDetail}

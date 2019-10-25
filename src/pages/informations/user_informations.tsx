@@ -24,7 +24,7 @@ import { string, object } from 'prop-types';
 const { TextArea } = Input;
 moment.locale('zh-cn');
 
-const Informations = () => {
+const UserInformations = () => {
   const [data, setData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +78,7 @@ const Informations = () => {
   };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}informations`);
+    fetchData(`${Constants.API_URL}informations/type/0`);
     fetchCategoryData(`${Constants.API_URL}categorys`);
   }, []);
 
@@ -105,48 +105,6 @@ const Informations = () => {
     {
       title: '状态',
       dataIndex: 'status_name',
-      filters: [
-        {
-          text: '待审核',
-          value: '待审核',
-        },
-        {
-          text: '已发布',
-          value: '已发布',
-        },
-        {
-          text: '已失效',
-          value: '已失效',
-        },
-        {
-          text: '已使用且失效',
-          value: '已使用且失效',
-        },
-      ],
-      onFilter: (value: any, record: any) =>
-        record.status_name.indexOf(value) === 0,
-      render: (text: any, record: any) => {
-        let color = 'red';
-        switch (record.status) {
-          case 1:
-            color = 'geekblue';
-            break;
-          case 2:
-            color = 'grey';
-            break;
-          case 3:
-            color = 'grey';
-            break;
-          default:
-            color = 'red';
-        }
-        var content = record.status_name;
-        return (
-          <Tag color={color} key={record.id}>
-            {content}
-          </Tag>
-        );
-      },
     },
     {
       title: '标签',
@@ -242,7 +200,7 @@ const Informations = () => {
       .delete(`${Constants.API_URL}information/${id}`)
       .then(function(response) {
         if (response.data.success) {
-          fetchData(`${Constants.API_URL}informations`);
+          fetchData(`${Constants.API_URL}informations/type/0`);
           message.success(response.data.massage, 5);
         } else {
           message.error(response.data.massage, 5);
@@ -284,7 +242,7 @@ const Informations = () => {
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
-            fetchData(`${Constants.API_URL}informations`);
+            fetchData(`${Constants.API_URL}informations/type/0`);
             message.success(response.data.massage, 5);
           } else {
             message.error(response.data.massage, 5);
@@ -550,7 +508,7 @@ const Informations = () => {
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
-            fetchData(`${Constants.API_URL}informations`);
+            fetchData(`${Constants.API_URL}informations/type/0`);
             message.success(response.data.massage, 5);
           } else {
             message.error(response.data.massage, 5);
@@ -862,4 +820,4 @@ const Informations = () => {
   );
 };
 
-export default Informations;
+export default UserInformations;
