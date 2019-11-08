@@ -783,12 +783,6 @@ const Informations = () => {
             <Form.Item label="标签" extra="请用','号分隔">
               {getFieldDecorator('tags', {
                 initialValue: information.tags.join(),
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
               })(<Input placeholder="标签请用','号分隔" />)}
             </Form.Item>
 
