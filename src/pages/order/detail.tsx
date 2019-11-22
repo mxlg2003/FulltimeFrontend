@@ -1082,6 +1082,7 @@ const Detail = ({ match }: any) => {
         if (response.data.code == 10010) {
           message.warning(response.data.massage, 5);
         } else {
+          fetchData();
           message.success('删除成功', 5);
         }
       })

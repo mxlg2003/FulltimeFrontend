@@ -32,6 +32,8 @@ import Informations from './pages/informations/index';
 import InformationDetail from './pages/informations/detail';
 import UserInformations from './pages/informations/user_informations';
 import InformationConfig from './pages/informations/config';
+import NewsCategory from './pages/newsCategory/index';
+import News from './pages/news/index';
 
 const { Content, Footer, Sider } = Layout;
 
@@ -118,6 +120,8 @@ const App = (props: any) => {
               path="/InformationConfig"
               component={InformationConfig}
             />
+            <Route path="/newsCategory" component={NewsCategory} />
+            <Route path="/news" component={News} />
             <Route component={NoMatch} />
           </Switch>
         </Content>

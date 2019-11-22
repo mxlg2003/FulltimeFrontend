@@ -20,26 +20,32 @@ import 'moment/locale/zh-cn';
 import * as Constants from '../../utils/constants';
 import useForm from 'rc-form-hooks';
 import { string, object } from 'prop-types';
+import BraftEditor from 'braft-editor';
+import 'braft-editor/dist/index.css';
+import * as qiniu from 'qiniu-js';
 
 const { TextArea } = Input;
 moment.locale('zh-cn');
 
-const Informations = () => {
+const News = () => {
   const [data, setData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    defaultCurrent: 1,
+    total: 10,
+    pageSize: 10,
+  });
 
-  interface iInformation {
+  interface iNews {
     title: string;
     content: string;
-    username: string;
-    mobile: string;
+    author?: string;
     category_id: number;
     status: string;
     recommend: string;
     tags?: string;
-    shop_code?: number;
-    type?: number;
+    pic?: string;
     views?: number;
     calls?: number;
   }
@@ -55,12 +61,43 @@ const Informations = () => {
       .then(function(response) {
         // console.log(response);
         setLoading(false);
+        setPagination({
+          defaultCurrent: response.data.page,
+          total: response.data.total,
+          pageSize: response.data.per_page,
+        });
         setData(response.data.data);
       })
       .catch(function(error) {
         console.log(error);
       });
   };
+
+  const fetchNewData = async (pagination: any) => {
+    let url = `${Constants.API_URL}news`;
+    await axios
+      .get(url, {
+        headers: {
+          Authorization: localStorage.getItem('jwtToken'),
+          // jwt: Constants.USER_ID,
+          page: pagination.current,
+        },
+      })
+      .then(function(response) {
+        // console.log(response);
+        setLoading(false);
+        setPagination({
+          defaultCurrent: response.data.page,
+          total: response.data.total,
+          pageSize: response.data.per_page,
+        });
+        setData(response.data.data);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  };
+
   const fetchCategoryData = async (url: any) => {
     await axios
       .get(url, {
@@ -80,45 +117,33 @@ const Informations = () => {
   };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}informations`);
-    fetchCategoryData(`${Constants.API_URL}categorys`);
+    fetchData(`${Constants.API_URL}news`);
+    fetchCategoryData(`${Constants.API_URL}newsCategorys`);
   }, []);
 
   const columns = [
     {
-      title: '信息标题',
-      dataIndex: 'title',
+      title: 'id',
+      dataIndex: 'id',
       key: 'id',
     },
 
     {
-      title: '联系人',
-      dataIndex: 'username',
-    },
-    {
-      title: '联系电话',
-      dataIndex: 'mobile',
+      title: '信息标题',
+      dataIndex: 'title',
     },
 
+    {
+      title: '作者',
+      dataIndex: 'author',
+    },
     {
       title: '所属类别',
       dataIndex: 'category_name',
     },
     {
       title: '访问次数',
-      render: (text: any, record: any) => {
-        return (
-          <div>
-            访问:&nbsp;
-            <br />
-            <b>{record.views}</b>
-            <br />
-            联系:&nbsp;
-            <br />
-            <b>{record.calls}</b>
-          </div>
-        );
-      },
+      dataIndex: 'views',
     },
     {
       title: '状态',
@@ -135,10 +160,6 @@ const Informations = () => {
         {
           text: '已失效',
           value: '已失效',
-        },
-        {
-          text: '已使用且失效',
-          value: '已使用且失效',
         },
       ],
       onFilter: (value: any, record: any) =>
@@ -209,7 +230,7 @@ const Informations = () => {
 
       render: (text: any, record: any) => (
         <Fragment>
-          <InformationEditModal record={record} />
+          <NewsEditModal record={record} />
 
           <Popconfirm
             title="确认删除? "
@@ -253,14 +274,14 @@ const Informations = () => {
 
   function confirm(id: any) {
     console.log(id);
-    deleteInformations(id);
+    deleteNews(id);
   }
-  const deleteInformations = (id: any) => {
+  const deleteNews = (id: any) => {
     axios
-      .delete(`${Constants.API_URL}information/${id}`)
+      .delete(`${Constants.API_URL}news/${id}`)
       .then(function(response) {
         if (response.data.success) {
-          fetchData(`${Constants.API_URL}informations`);
+          fetchData(`${Constants.API_URL}news`);
           message.success(response.data.massage, 5);
         } else {
           message.error(response.data.massage, 5);
@@ -271,24 +292,51 @@ const Informations = () => {
       });
   };
 
-  const InformationAddModal = () => {
+  const uploadFn = (param: any) => {
+    const token = uptoken;
+    const putExtra = {};
+    const config = {};
+    const observer = {
+      next(res: any) {
+        param.progress(res.total.percent);
+      },
+      error(err: any) {
+        param.error({
+          msg: err.message,
+        });
+      },
+      complete(res: any) {
+        param.success({
+          url: 'http://img.mskjzg.com/' + res.key,
+        });
+      },
+    };
+    qiniu
+      .upload(param.file, param.name, token, putExtra, config)
+      .subscribe(observer);
+  };
+
+  const NewsAddModal = () => {
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
+    const [editorState, setEditorState] = useState(
+      BraftEditor.createEditorState('<p></p>'),
+    );
 
     const {
       getFieldDecorator,
       validateFields,
       getFieldsValue,
       resetFields,
-    } = useForm<iInformation>();
+    } = useForm<iNews>();
 
-    const informationPost = (values: object) => {
+    const newsPost = (values: object) => {
       var value: any = values;
       console.log(value);
       value.type = 1;
       value.users_id = localStorage.getItem('user_id');
-      value.shop_code = localStorage.getItem('shop_code');
       value.pic = compoundUploadPicUrl(fileList);
+      value.content = editorState.toHTML();
       var e: any = JSON.stringify(value, null, 2);
 
       console.log(e);
@@ -296,13 +344,13 @@ const Informations = () => {
       axios.defaults.headers.post['Content-Type'] =
         'application/json; charset=utf-8';
       axios
-        .post(`${Constants.API_URL}informations`, e)
+        .post(`${Constants.API_URL}news`, e)
         .then(function(response) {
           console.log(response);
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
-            fetchData(`${Constants.API_URL}informations`);
+            fetchData(`${Constants.API_URL}news`);
             message.success(response.data.massage, 5);
           } else {
             message.error(response.data.massage, 5);
@@ -324,11 +372,15 @@ const Informations = () => {
       validateFields()
         .then(() => {
           var values: any = getFieldsValue();
-          informationPost(values);
+          newsPost(values);
         })
         .catch(console.error);
     };
 
+    const handleMessageChange = (c: any) => {
+      setEditorState(c);
+      console.log(c);
+    };
     const compoundUploadPicUrl = (fileList: any) => {
       let temp: any = [];
       fileList.map((item: any) => {
@@ -361,6 +413,19 @@ const Informations = () => {
         // console.log(fileList);
       }
     };
+    // const editerUpload = (info: any) => {
+    //   if (info.file.status === 'done') {
+    //     console.log(editorState);
+    //     let html: any =
+    //       editorState.toHTML() +
+    //       `<p><div class="media-wrap image-wrap"><img src="http://img.mskjzg.com/${info.file.response.hash}"/></div></p>`;
+    //     console.log(html);
+    //     console.log(BraftEditor.createEditorState(html));
+    //     setEditorState(BraftEditor.createEditorState(html));
+
+    //     console.log(editorState);
+    //   }
+    // };
 
     const uploadHandleRemove = (file: any) => {
       // console.log(file);
@@ -369,16 +434,52 @@ const Informations = () => {
 
     const previewHandleCancel = () => setPreviewVisible(false);
 
+    const controls: any = [
+      'bold',
+      'italic',
+      'underline',
+      'text-color',
+      'separator',
+      'link',
+      'separator',
+      'media',
+    ];
+
+    const extendControls: any = [
+      {
+        key: 'antd-uploader',
+        type: 'component',
+        component: (
+          <Upload
+            action={Constants.QINIU_SERVER}
+            showUploadList={false}
+            data={uploadData}
+            accept="image/png, image/jpeg, image/jpg"
+            // customRequest = {customRequest}
+            // onChange={editerUpload}
+            multiple={false}
+          >
+            <button
+              type="button"
+              className="control-item button upload-button"
+              data-title="插入图片"
+            >
+              <Icon type="picture" theme="filled" />
+            </button>
+          </Upload>
+        ),
+      },
+    ];
     return (
       <div style={{ margin: '0 0 24px' }}>
         <button
           className="ant-btn ant-btn-primary"
           onClick={() => setVisible(true)}
         >
-          新增分类信息
+          新增新闻
         </button>
         <Modal
-          title="新增分类信息"
+          title="新增新闻"
           visible={visible}
           onOk={handleSubmit}
           confirmLoading={confirmLoading}
@@ -412,27 +513,27 @@ const Informations = () => {
                     message: '此项必填',
                   },
                 ],
-              })(<TextArea rows={4} />)}
+              })(
+                <BraftEditor
+                  className="bf-controlbar"
+                  // controls={controls}
+                  // extendControls={extendControls}
+                  placeholder="请输入正文内容"
+                  contentStyle={{
+                    height: 510,
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,.1)',
+                  }}
+                  defaultValue={editorState}
+                  value={editorState}
+                  onChange={handleMessageChange}
+                  media={{ uploadFn: uploadFn }}
+                />,
+              )}
             </Form.Item>
-            <Form.Item label="联系人姓名">
-              {getFieldDecorator('username', {
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="联系人姓名" />)}
-            </Form.Item>
-            <Form.Item label="联系人手机号">
-              {getFieldDecorator('mobile', {
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="联系人手机号" />)}
+            <Form.Item label="作者">
+              {getFieldDecorator('author')(
+                <Input placeholder="作者" />,
+              )}
             </Form.Item>
             <Form.Item label="所属类别">
               {getFieldDecorator('category_id', {
@@ -471,7 +572,6 @@ const Informations = () => {
                   <Radio.Button value="0">待审核</Radio.Button>
                   <Radio.Button value="1">已发布</Radio.Button>
                   <Radio.Button value="2">已失效</Radio.Button>
-                  <Radio.Button value="3">已使用且失效</Radio.Button>
                 </Radio.Group>,
               )}
             </Form.Item>
@@ -512,7 +612,7 @@ const Informations = () => {
                 action={Constants.QINIU_SERVER}
                 listType="picture-card"
                 className="upload-list-inline"
-                // defaultFileList={fileList}
+                defaultFileList={fileList}
                 data={uploadData}
                 accept="image/png, image/jpeg, image/jpg"
                 // customRequest = {customRequest}
@@ -521,7 +621,7 @@ const Informations = () => {
                 onRemove={uploadHandleRemove}
                 multiple={false}
               >
-                {fileList.length >= 8 ? null : uploadButton}
+                {fileList.length >= 1 ? null : uploadButton}
               </Upload>
               <Modal
                 visible={previewVisible}
@@ -541,30 +641,33 @@ const Informations = () => {
     );
   };
 
-  const InformationEditModal = (record: any) => {
-    const information: any = record.record;
+  const NewsEditModal = (record: any) => {
+    const news: any = record.record;
     const [visible, setVisible] = useState(false);
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [fileList, setFileList] = useState([]);
     const [previewVisible, setPreviewVisible] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
     const [previewName, setPreviewName] = useState('');
+    const [editorState, setEditorState] = useState(
+      BraftEditor.createEditorState(news.content),
+    );
 
     const {
       getFieldDecorator,
       validateFields,
       getFieldsValue,
       resetFields,
-    } = useForm<iInformation>();
+    } = useForm<iNews>();
 
-    const informationPost = (values: object) => {
+    const newsPost = (values: object) => {
       var value: any = values;
       console.log(value);
-      value.id = information.id;
+      value.id = news.id;
       value.type = 1;
       value.users_id = localStorage.getItem('user_id');
-      value.shop_code = localStorage.getItem('shop_code');
       value.pic = compoundUploadPicUrl(fileList);
+      value.content = editorState.toHTML();
       var e: any = JSON.stringify(value, null, 2);
 
       console.log(e);
@@ -572,13 +675,13 @@ const Informations = () => {
       axios.defaults.headers.post['Content-Type'] =
         'application/json; charset=utf-8';
       axios
-        .post(`${Constants.API_URL}informations`, e)
+        .post(`${Constants.API_URL}news`, e)
         .then(function(response) {
           console.log(response);
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
-            fetchData(`${Constants.API_URL}informations`);
+            fetchData(`${Constants.API_URL}news`);
             message.success(response.data.massage, 5);
           } else {
             message.error(response.data.massage, 5);
@@ -599,7 +702,7 @@ const Informations = () => {
       e.preventDefault();
       let values: any = getFieldsValue();
       console.log(values);
-      informationPost(values);
+      newsPost(values);
     };
 
     const defaultFileList = (information: any) => {
@@ -646,7 +749,7 @@ const Informations = () => {
     };
 
     useEffect(() => {
-      setFileList(defaultFileList(information));
+      setFileList(defaultFileList(news));
     }, []);
 
     const compoundUploadPicUrl = (fileList: any) => {
@@ -687,6 +790,11 @@ const Informations = () => {
       setFileList(fl);
     };
 
+    const handleMessageChange = (c: any) => {
+      setEditorState(c);
+      console.log(c);
+    };
+
     const previewHandleCancel = () => setPreviewVisible(false);
 
     return (
@@ -717,7 +825,7 @@ const Informations = () => {
           >
             <Form.Item label="信息标题">
               {getFieldDecorator('title', {
-                initialValue: information.title,
+                initialValue: news.title,
                 rules: [
                   {
                     required: true,
@@ -728,40 +836,38 @@ const Informations = () => {
             </Form.Item>
             <Form.Item label="信息内容">
               {getFieldDecorator('content', {
-                initialValue: information.content,
+                initialValue: news.content,
                 rules: [
                   {
                     required: true,
                     message: '此项必填',
                   },
                 ],
-              })(<TextArea rows={4} />)}
+              })(
+                <BraftEditor
+                  className="bf-controlbar"
+                  // controls={controls}
+                  // extendControls={extendControls}
+                  placeholder="请输入正文内容"
+                  contentStyle={{
+                    height: 510,
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,.1)',
+                  }}
+                  defaultValue={editorState}
+                  value={editorState}
+                  onChange={handleMessageChange}
+                  media={{ uploadFn: uploadFn }}
+                />,
+              )}
             </Form.Item>
-            <Form.Item label="联系人姓名">
-              {getFieldDecorator('username', {
-                initialValue: information.username,
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
+            <Form.Item label="作者">
+              {getFieldDecorator('author', {
+                initialValue: news.author,
               })(<Input placeholder="联系人姓名" />)}
-            </Form.Item>
-            <Form.Item label="联系人手机号">
-              {getFieldDecorator('mobile', {
-                initialValue: information.mobile,
-                rules: [
-                  {
-                    required: true,
-                    message: '此项必填',
-                  },
-                ],
-              })(<Input placeholder="联系人手机号" />)}
             </Form.Item>
             <Form.Item label="所属类别">
               {getFieldDecorator('category_id', {
-                initialValue: information.category_id,
+                initialValue: news.category_id,
                 rules: [
                   {
                     required: true,
@@ -785,7 +891,7 @@ const Informations = () => {
             </Form.Item>
             <Form.Item label="信息类型">
               {getFieldDecorator('status', {
-                initialValue: information.status.toString(),
+                initialValue: news.status.toString(),
                 rules: [
                   {
                     required: true,
@@ -807,23 +913,23 @@ const Informations = () => {
             </Form.Item>
             <Form.Item label="标签" extra="请用','号分隔">
               {getFieldDecorator('tags', {
-                initialValue: information.tags.join(),
+                initialValue: news.tags.join(),
               })(<Input placeholder="标签请用','号分隔" />)}
             </Form.Item>
             <Form.Item label="浏览次数">
               {getFieldDecorator('views', {
-                initialValue: information.views,
+                initialValue: news.views,
               })(<Input placeholder="浏览次数" />)}
             </Form.Item>
             <Form.Item label="联系次数">
               {getFieldDecorator('calls', {
-                initialValue: information.calls,
+                initialValue: news.calls,
               })(<Input placeholder="联系次数" />)}
             </Form.Item>
 
             <Form.Item label="推荐状态">
               {getFieldDecorator('recommend', {
-                initialValue: information.recommend.toString(),
+                initialValue: news.recommend.toString(),
                 rules: [
                   {
                     required: true,
@@ -851,7 +957,7 @@ const Informations = () => {
                 onRemove={uploadHandleRemove}
                 multiple={false}
               >
-                {fileList.length >= 8 ? null : uploadButton}
+                {fileList.length >= 1 ? null : uploadButton}
               </Upload>
               <Modal
                 visible={previewVisible}
@@ -873,22 +979,20 @@ const Informations = () => {
 
   return (
     <Fragment>
-      <InformationAddModal />
+      <NewsAddModal />
 
       <Table
         columns={columns}
         dataSource={data}
         bordered={true}
-        pagination={{
-          pageSize: 20,
-          defaultCurrent: 1,
-        }}
+        pagination={pagination}
         loading={loading}
         rowKey="id"
+        onChange={fetchNewData}
         //   scroll={{ x: 1600, y: 800 }}
       />
     </Fragment>
   );
 };
 
-export default Informations;
+export default News;

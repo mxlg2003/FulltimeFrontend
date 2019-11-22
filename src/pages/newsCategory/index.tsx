@@ -23,7 +23,7 @@ import useForm from 'rc-form-hooks';
 const Option = Select.Option;
 moment.locale('zh-cn');
 
-const InformationCategory = () => {
+const NewsCategory = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +31,6 @@ const InformationCategory = () => {
     category_name: string;
     category_sort: string;
     category_icon: string;
-    show_contact: string;
   }
 
   const fetchData = async (url: any) => {
@@ -53,7 +52,7 @@ const InformationCategory = () => {
   };
 
   useEffect(() => {
-    fetchData(`${Constants.API_URL}categorys`);
+    fetchData(`${Constants.API_URL}newsCategorys`);
   }, []);
 
   const columns = [
@@ -78,18 +77,6 @@ const InformationCategory = () => {
         />
       ),
     },
-    {
-      title: '公开联系方式',
-      dataIndex: 'show_contact',
-      render: (text: any, record: any) => {
-        if (record.show_contact) {
-          return <Tag color="green">公开</Tag>;
-        } else {
-          return <Tag>隐藏</Tag>;
-        }
-      },
-    },
-
     {
       title: '更新人',
       dataIndex: 'update_user_name',
@@ -120,10 +107,10 @@ const InformationCategory = () => {
   }
   const deleteCategorys = (id: any) => {
     axios
-      .delete(`${Constants.API_URL}category/${id}`)
+      .delete(`${Constants.API_URL}newsCategory/${id}`)
       .then(function(response) {
         if (response.data.success) {
-          fetchData(`${Constants.API_URL}categorys`);
+          fetchData(`${Constants.API_URL}newsCategorys`);
           message.success(response.data.massage, 5);
         } else {
           message.error(response.data.massage, 5);
@@ -158,13 +145,13 @@ const InformationCategory = () => {
       axios.defaults.headers.post['Content-Type'] =
         'application/json; charset=utf-8';
       axios
-        .post(`${Constants.API_URL}categorys`, e)
+        .post(`${Constants.API_URL}newsCategorys`, e)
         .then(function(response) {
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
             message.success(response.data.massage, 5);
-            fetchData(`${Constants.API_URL}categorys`);
+            fetchData(`${Constants.API_URL}newsCategorys`);
           } else {
             message.error(response.data.massage, 5);
           }
@@ -237,15 +224,6 @@ const InformationCategory = () => {
                 initialValue: category.category_icon,
               })(<Input placeholder="类别图标地址" />)}
             </Form.Item>
-            <Form.Item label="公开联系方式">
-              {getFieldDecorator('show_contact')(
-                <Switch
-                  checkedChildren={<Icon type="check" />}
-                  unCheckedChildren={<Icon type="close" />}
-                  defaultChecked={category.show_contact}
-                />,
-              )}
-            </Form.Item>
           </Form>
         </Modal>
       </Fragment>
@@ -274,13 +252,13 @@ const InformationCategory = () => {
       axios.defaults.headers.post['Content-Type'] =
         'application/json; charset=utf-8';
       axios
-        .post(`${Constants.API_URL}categorys`, e)
+        .post(`${Constants.API_URL}newsCategorys`, e)
         .then(function(response) {
           console.log(response);
           if (response.data.success) {
             setConfirmLoading(false);
             handleReset();
-            fetchData(`${Constants.API_URL}categorys`);
+            fetchData(`${Constants.API_URL}newsCategorys`);
             message.success(response.data.massage, 5);
           } else {
             message.error(response.data.massage, 5);
@@ -308,7 +286,7 @@ const InformationCategory = () => {
           className="ant-btn ant-btn-primary"
           onClick={() => setVisible(true)}
         >
-          新增信息类别
+          新增新闻类别
         </button>
         <Modal
           title="新增信息类别"
@@ -347,14 +325,6 @@ const InformationCategory = () => {
                 <Input placeholder="类别图标地址" />,
               )}
             </Form.Item>
-            <Form.Item label="公开联系方式">
-              {getFieldDecorator('show_contact')(
-                <Switch
-                  checkedChildren={<Icon type="check" />}
-                  unCheckedChildren={<Icon type="close" />}
-                />,
-              )}
-            </Form.Item>
           </Form>
         </Modal>
       </div>
@@ -381,4 +351,4 @@ const InformationCategory = () => {
   );
 };
 
-export default InformationCategory;
+export default NewsCategory;
