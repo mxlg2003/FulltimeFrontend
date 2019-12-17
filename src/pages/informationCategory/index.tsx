@@ -11,6 +11,7 @@ import {
   Tag,
   Switch,
   Icon,
+  Upload,
 } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
@@ -32,6 +33,8 @@ const InformationCategory = () => {
     category_sort: string;
     category_icon: string;
     show_contact: string;
+    show_banner: string;
+    banner_link?: string;
   }
 
   const fetchData = async (url: any) => {
@@ -78,11 +81,23 @@ const InformationCategory = () => {
         />
       ),
     },
+
     {
       title: '公开联系方式',
       dataIndex: 'show_contact',
       render: (text: any, record: any) => {
         if (record.show_contact) {
+          return <Tag color="green">公开</Tag>;
+        } else {
+          return <Tag>隐藏</Tag>;
+        }
+      },
+    },
+    {
+      title: '显示广告位',
+      dataIndex: 'show_banner',
+      render: (text: any, record: any) => {
+        if (record.show_banner) {
           return <Tag color="green">公开</Tag>;
         } else {
           return <Tag>隐藏</Tag>;
@@ -113,6 +128,33 @@ const InformationCategory = () => {
       ),
     },
   ];
+
+  const [uptoken, setUptoken] = useState('');
+
+  const uploadData = {
+    token: uptoken,
+  };
+
+  const URL = `${Constants.API_URL}uptoken`;
+
+  const getUptoken = async (url: string) => {
+    const result = false;
+    await axios.get(url).then(function(response) {
+      setUptoken(response.data);
+    });
+    return result;
+  };
+
+  useEffect(() => {
+    getUptoken(URL);
+  }, []);
+
+  const uploadButton = (
+    <div>
+      <Icon type="plus" />
+      <div className="ant-upload-text">Upload</div>
+    </div>
+  );
 
   function confirm(id: any) {
     console.log(id);
@@ -152,6 +194,7 @@ const InformationCategory = () => {
       console.log(value);
       value.id = category.id;
       value.users_id = localStorage.getItem('user_id');
+      value.banner_pic = compoundUploadPicUrl(fileList);
       var e: any = JSON.stringify(value, null, 2);
       console.log(e);
       // setConfirmLoading(true);
@@ -173,6 +216,95 @@ const InformationCategory = () => {
           console.log(error);
         });
     };
+    const defaultFileList = (information: any) => {
+      interface iFileResponse {
+        hash: string;
+      }
+      interface iFile {
+        uid: string;
+        name: string;
+        status: string;
+        url: string;
+        response: iFileResponse;
+      }
+
+      // console.log(information);
+      if (
+        information.banner_pic == null ||
+        information.banner_pic == ''
+      ) {
+        return [];
+      } else {
+        // let temp: any = [];
+        let fileListHash = information.banner_pic.split(',');
+        // console.log(fileListHash);
+
+        let temp: any = fileListHash.map(
+          (item: string, index: number) => {
+            let file: iFile = {
+              uid: item + Math.floor(Math.random() * 100),
+              name: item,
+              status: 'done',
+              url: Constants.BASE_QINIU_URL + item,
+              response: { hash: item },
+            };
+            // console.log(item);
+            // file.uid = item + Math.floor(Math.random() * 100);
+            // file.name = item;
+            // file.status = 'done';
+            // file.url = Constants.BASE_QINIU_URL + item;
+            // file.response.hash = item;
+            return file;
+          },
+        );
+        console.log(temp);
+        return temp;
+      }
+    };
+
+    useEffect(() => {
+      setFileList(defaultFileList(category));
+    }, []);
+
+    const compoundUploadPicUrl = (fileList: any) => {
+      let temp: any = [];
+      fileList.map((item: any) => {
+        temp.push(item.response.hash);
+      });
+      return temp.join(',');
+    };
+
+    const [fileList, setFileList] = useState([]);
+
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [previewImage, setPreviewImage] = useState('');
+    const [previewName, setPreviewName] = useState('');
+
+    const uploadHandlePreview = (file: any) => {
+      console.log(file);
+      setPreviewImage(
+        Constants.BASE_QINIU_URL +
+          file.response.hash +
+          Constants.SMALL_IMG_URL,
+      );
+      setPreviewName(file.name);
+      setPreviewVisible(true);
+    };
+
+    const uploadHandleChange = (info: any) => {
+      if (info.file.status === 'done') {
+        const fileList: any = info.fileList;
+        setFileList(fileList);
+        // console.log(fileList);
+      }
+    };
+
+    const uploadHandleRemove = (file: any) => {
+      // console.log(file);
+      // console.log(fl);
+    };
+
+    const previewHandleCancel = () => setPreviewVisible(false);
 
     const handleReset = () => {
       setVisible(false);
@@ -246,6 +378,48 @@ const InformationCategory = () => {
                 />,
               )}
             </Form.Item>
+            <Form.Item label="显示广告位">
+              {getFieldDecorator('show_banner')(
+                <Switch
+                  checkedChildren={<Icon type="check" />}
+                  unCheckedChildren={<Icon type="close" />}
+                  defaultChecked={category.show_banner}
+                />,
+              )}
+            </Form.Item>
+            <Form.Item label="广告链接地址">
+              {getFieldDecorator('banner_link', {
+                initialValue: category.banner_link,
+              })(<Input placeholder="广告链接地址" />)}
+            </Form.Item>
+            <Form.Item label="上传图片">
+              <Upload
+                action={Constants.QINIU_SERVER}
+                listType="picture-card"
+                className="upload-list-inline"
+                defaultFileList={fileList}
+                data={uploadData}
+                accept="image/png, image/jpeg, image/jpg"
+                // customRequest = {customRequest}
+                onPreview={uploadHandlePreview}
+                onChange={uploadHandleChange}
+                onRemove={uploadHandleRemove}
+                multiple={false}
+              >
+                {fileList.length >= 2 ? null : uploadButton}
+              </Upload>
+              <Modal
+                visible={previewVisible}
+                footer={null}
+                onCancel={previewHandleCancel}
+              >
+                <img
+                  alt={previewName}
+                  style={{ width: '100%' }}
+                  src={previewImage}
+                />
+              </Modal>
+            </Form.Item>
           </Form>
         </Modal>
       </Fragment>
@@ -267,6 +441,7 @@ const InformationCategory = () => {
       var value: any = values;
       console.log(value);
       value.users_id = localStorage.getItem('user_id');
+      value.banner_pic = compoundUploadPicUrl(fileList);
       var e: any = JSON.stringify(value, null, 2);
 
       console.log(e);
@@ -290,6 +465,46 @@ const InformationCategory = () => {
           console.log(error);
         });
     };
+
+    const compoundUploadPicUrl = (fileList: any) => {
+      let temp: any = [];
+      fileList.map((item: any) => {
+        temp.push(item.response.hash);
+      });
+      return temp.join(',');
+    };
+
+    const [fileList, setFileList] = useState([]);
+
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [previewImage, setPreviewImage] = useState('');
+    const [previewName, setPreviewName] = useState('');
+
+    const uploadHandlePreview = (file: any) => {
+      console.log(file);
+      setPreviewImage(
+        Constants.BASE_QINIU_URL +
+          file.response.hash +
+          Constants.SMALL_IMG_URL,
+      );
+      setPreviewName(file.name);
+      setPreviewVisible(true);
+    };
+
+    const uploadHandleChange = (info: any) => {
+      if (info.file.status === 'done') {
+        const fileList: any = info.fileList;
+        setFileList(fileList);
+        // console.log(fileList);
+      }
+    };
+
+    const uploadHandleRemove = (file: any) => {
+      // console.log(file);
+      // console.log(fl);
+    };
+
+    const previewHandleCancel = () => setPreviewVisible(false);
 
     const handleReset = () => {
       setVisible(false);
@@ -354,6 +569,47 @@ const InformationCategory = () => {
                   unCheckedChildren={<Icon type="close" />}
                 />,
               )}
+            </Form.Item>
+            <Form.Item label="显示广告位">
+              {getFieldDecorator('show_banner')(
+                <Switch
+                  checkedChildren={<Icon type="check" />}
+                  unCheckedChildren={<Icon type="close" />}
+                />,
+              )}
+            </Form.Item>
+            <Form.Item label="广告链接地址">
+              {getFieldDecorator('banner_link')(
+                <Input placeholder="广告链接地址" />,
+              )}
+            </Form.Item>
+            <Form.Item label="上传图片">
+              <Upload
+                action={Constants.QINIU_SERVER}
+                listType="picture-card"
+                className="upload-list-inline"
+                // defaultFileList={fileList}
+                data={uploadData}
+                accept="image/png, image/jpeg, image/jpg"
+                // customRequest = {customRequest}
+                onPreview={uploadHandlePreview}
+                onChange={uploadHandleChange}
+                onRemove={uploadHandleRemove}
+                multiple={false}
+              >
+                {fileList.length >= 1 ? null : uploadButton}
+              </Upload>
+              <Modal
+                visible={previewVisible}
+                footer={null}
+                onCancel={previewHandleCancel}
+              >
+                <img
+                  alt={previewName}
+                  style={{ width: '100%' }}
+                  src={previewImage}
+                />
+              </Modal>
             </Form.Item>
           </Form>
         </Modal>

@@ -34,7 +34,9 @@ import UserInformations from './pages/informations/user_informations';
 import InformationConfig from './pages/informations/config';
 import NewsCategory from './pages/newsCategory/index';
 import News from './pages/news/index';
-
+import ProjectCategory from './pages/projectCategory/index';
+import Projects from './pages/projects/index';
+import ProjectMessage from './pages/projectMessage/index';
 const { Content, Footer, Sider } = Layout;
 
 // function About() {
@@ -122,6 +124,16 @@ const App = (props: any) => {
             />
             <Route path="/newsCategory" component={NewsCategory} />
             <Route path="/news" component={News} />
+            <Route
+              path="/projectCategory"
+              component={ProjectCategory}
+            />
+            <Route path="/projects/" component={Projects} />
+            <Route
+              path="/projectMessages/"
+              component={ProjectMessage}
+            />
+
             <Route component={NoMatch} />
           </Switch>
         </Content>
