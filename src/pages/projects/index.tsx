@@ -101,7 +101,7 @@ const Projects = () => {
     intro: string;
     company: string;
     category_id: number;
-    stores: string;
+    stores: number;
     recommend: string;
     area: string;
     model: string;
@@ -799,7 +799,7 @@ const Projects = () => {
                     message: '此项必填',
                   },
                 ],
-              })(<Input placeholder="门店数" />)}
+              })(<Input placeholder="门店数" type="number" />)}
             </Form.Item>
             <Form.Item label="浏览次数">
               {getFieldDecorator('views')(
@@ -1367,7 +1367,7 @@ const Projects = () => {
                     message: '此项必填',
                   },
                 ],
-              })(<Input placeholder="门店数" />)}
+              })(<Input placeholder="门店数" type="number" />)}
             </Form.Item>
             <Form.Item label="浏览次数">
               {getFieldDecorator('views', {
